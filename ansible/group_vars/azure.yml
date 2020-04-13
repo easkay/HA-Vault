@@ -1,0 +1,2 @@
+consul_datacentre: "uksouth"
+haproxy_enable_incoming_proxy_protocol: false

@@ -1,0 +1,12 @@
+---
+
+- import_tasks: "install-haproxy-packages.yml"
+- import_tasks: "install-consul-template.yml"
+- import_tasks: "consul-template-directories.yml"
+- import_tasks: "tls.yml"
+- import_tasks: "configure-consul-template.yml"
+- import_tasks: "consul-template-sudoers.yml"
+- import_tasks: "install-extra-packages.yml"
+- import_tasks: "firewall.yml"
+
+...

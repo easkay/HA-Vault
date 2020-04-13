@@ -1,0 +1,11 @@
+---
+
+- name: Enable sudo for all consul-template commands
+  lineinfile:
+    line: "{{ consul_template_user }}    ALL=(ALL)  NOPASSWD: /bin/systemctl restart haproxy"
+    dest: "/etc/sudoers.d/consul-template"
+    owner: root
+    group: root
+    mode: 0440
+    create: yes
+    validate: '/usr/sbin/visudo -cf %s'

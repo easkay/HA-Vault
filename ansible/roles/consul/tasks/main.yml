@@ -1,0 +1,12 @@
+---
+
+- import_tasks: "user.yml"
+- import_tasks: "install.yml"
+- import_tasks: "directories.yml"
+- import_tasks: "configure.yml"
+- import_tasks: "tls.yml"
+- import_tasks: "logging.yml"
+- import_tasks: "firewall.yml"
+- import_tasks: "prepare-bootstrap.yml"
+
+...

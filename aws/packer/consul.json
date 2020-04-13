@@ -1,0 +1,41 @@
+{
+    "variables": {
+        "aws_access_key": null,
+        "aws_secret_key": null,
+        "region":         null
+    },
+    "builders": [
+        {
+            "type":          "amazon-ebs",
+            "access_key":    "{{user `aws_access_key`}}",
+            "secret_key":    "{{user `aws_secret_key`}}",
+            "region":        "{{user `region`}}",
+            "source_ami":    "ami-077a5b1762a2dde35",
+            "instance_type": "t2.medium",
+            "ami_name":      "consul-{{isotime | clean_resource_name}}",
+            "ssh_username":  "ubuntu",
+            "tags":          {
+                "system": "consul"
+            }
+        }
+    ],
+    "provisioners": [
+        {
+            "type":   "shell",
+            "inline": [
+                "timeout 60s bash -c \"while ! [ -f /var/lib/cloud/instance/boot-finished ]; do echo 'Waiting on cloud-init...'; sleep 2; done\"",
+                "sudo apt-get update",
+                "sudo apt-get upgrade -y || true"
+            ]
+        },
+        {
+            "type":                "ansible",
+            "playbook_file":       "{{ template_dir }}/../../ansible/consul.yml",
+            "extra_arguments":     "--vault-password-file={{ template_dir }}/../../ansible/vault-password",
+            "groups":              ["consul", "aws"],
+            "host_alias":          "{{ sed \"s/-//\" uuid }}",
+            "inventory_directory": "{{ template_dir }}/../../ansible",
+            "user":                "ubuntu"
+        }
+    ]
+}

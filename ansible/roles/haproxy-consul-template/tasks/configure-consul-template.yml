@@ -1,0 +1,26 @@
+---
+
+- name: Copy config file
+  template:
+    src: consul_template_config.hcl.j2
+    dest: "{{ consul_template_config_dir }}/consul-template.hcl"
+    owner: root
+    group: "{{ consul_template_user }}"
+    mode: 0640
+  notify: restart_consul_template
+
+- name: Copy HAProxy template
+  template:
+    src: "haproxy.cfg.ctmpl.j2"
+    dest: "{{ consul_template_config_dir }}/templates/haproxy.cfg.ctmpl"
+    owner: root
+    group: "{{ consul_template_user }}"
+    mode: 0640
+  notify: restart_consul_template
+
+- name: Ensure consul-template is started and enabled
+  systemd:
+    name: consul-template
+    state: started
+    enabled: yes
+    daemon_reload: yes

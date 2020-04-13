@@ -1,0 +1,11 @@
+---
+
+- name: restart_consul_template
+  service:
+    name: consul-template
+    state: restarted
+
+- name: restart_rsyslog
+  service:
+    name: rsyslog
+    state: restarted

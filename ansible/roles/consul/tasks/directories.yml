@@ -1,0 +1,37 @@
+---
+
+- name: Create config dir
+  file:
+    path: "{{ consul_config_dir }}"
+    state: directory
+    owner: root
+    group: consul
+    mode: 0750
+
+- name: Create data directory
+  file:
+    path: "{{ consul_data_dir }}"
+    state: directory
+    owner: consul
+    group: consul
+    mode: 0750
+
+- name: Create log directory
+  file:
+    path: "{{ consul_log_dir }}"
+    state: directory
+    owner: "syslog"
+    group: consul
+    mode: 0775
+
+- name: Setup tmpfiles config
+  template:
+    src: tmpfiles-consul.conf.j2
+    dest: /etc/tmpfiles.d/consul.conf
+  register: tmpfilesd_result
+
+- name: Ensure directories under tmpfiles.d exist
+  shell: "systemd-tmpfiles --create --remove"
+  when: tmpfilesd_result.changed
+
+...

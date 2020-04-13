@@ -1,0 +1,22 @@
+---
+
+- name: Prepare APT for PPA
+  apt:
+    name: software-properties-common
+    state: present
+
+- name: Add HAProxy PPA
+  apt_repository:
+    repo: ppa:vbernat/haproxy-2.0
+
+- name: Install HAProxy package
+  apt:
+    name: haproxy
+    state: present
+
+- name: Enable systemd service
+  systemd:
+    name: haproxy
+    enabled: yes
+
+...

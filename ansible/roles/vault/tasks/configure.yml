@@ -1,0 +1,11 @@
+---
+
+- name: Copy vault config
+  template:
+    src: vault-config.json.j2
+    dest: "{{ vault_config_dir }}/vault.json"
+    owner: root
+    group: vault
+    mode: 0640
+
+...

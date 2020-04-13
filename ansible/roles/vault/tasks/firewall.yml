@@ -1,0 +1,17 @@
+---
+
+- name: Allow HTTPS through firewall
+  ufw:
+    proto: tcp
+    rule: allow
+    direction: in
+    to_port: "8200"
+
+- name: Allow forwarding through firewall
+  ufw:
+    proto: any
+    rule: allow
+    direction: in
+    to_port: "8201"
+
+...

@@ -1,0 +1,40 @@
+---
+
+- name: Copy CA crt
+  copy:
+    src: "{{ consul_ca_crt_file }}"
+    dest: "{{ consul_config_dir }}/{{ consul_ca_crt_file|basename }}"
+    owner: root
+    group: consul
+
+- name: Copy crt
+  copy:
+    src: "{{ consul_crt_file }}"
+    dest: "{{ consul_config_dir }}/{{ consul_crt_file|basename }}"
+    owner: root
+    group: consul
+    mode: 0640
+
+- name: Copy key
+  copy:
+    src: "{{ consul_key_file }}"
+    dest: "{{ consul_config_dir }}/{{ consul_key_file|basename }}"
+    owner: root
+    group: consul
+    mode: 0640
+
+- name: Copy CA crt to system store
+  copy:
+    src: "{{ consul_config_dir }}/{{ consul_ca_crt_file|basename }}"
+    dest: "/usr/local/share/ca-certificates/{{ consul_ca_crt_file|basename }}"
+    owner: root
+    group: root
+    mode: 0644
+    remote_src: yes
+  register: consul_ca_system_store_result
+
+- name: Update system CA bundle
+  shell: update-ca-certificates
+  when: consul_ca_system_store_result.changed
+
+...

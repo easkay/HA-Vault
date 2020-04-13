@@ -1,0 +1,71 @@
+---
+
+- name: Install dependencies
+  package:
+    name: unzip
+    state: present
+
+- name: Fetch binary checksums file
+  get_url:
+    url: "https://releases.hashicorp.com/consul-template/{{ consul_template_version }}/consul-template_{{ consul_template_version }}_SHA256SUMS"
+    dest: "{{ role_path }}/files/"
+    force: yes
+  delegate_to: localhost
+  become: no
+  when: consul_template_verify_binary_checksum
+
+- name: Find binary checksum
+  shell: "grep {{ consul_template_download_filename }} {{ role_path }}/files/*SHA256SUMS | grep -oE '^\\S+'"
+  delegate_to: localhost
+  become: no
+  when: consul_template_verify_binary_checksum
+  register: consul_template_binary_expected_checksum
+
+- name: Fetch consul-template binary
+  get_url:
+    url: "https://releases.hashicorp.com/consul-template/{{ consul_template_version }}/{{ consul_template_download_filename }}"
+    dest: "{{ role_path }}/files/"
+    checksum: "{{ (consul_template_verify_binary_checksum)|ternary('sha256:'+consul_template_binary_expected_checksum.stdout, '') }}"
+  delegate_to: localhost
+  become: no
+
+- name: Remove existing binary
+  file:
+    path: "{{ consul_template_binary_install_dir }}/consul-template"
+    state: absent
+  when: consul_template_overwrite_binary
+
+- name: Install binary
+  unarchive:
+    src: "{{ consul_template_download_filename }}"
+    dest: "{{ consul_template_binary_install_dir }}/"
+    creates: "{{ consul_template_binary_install_dir }}/consul-template"
+    owner: root
+    group: root
+    mode: 0755
+  notify: restart_consul_template
+
+- name: Install consul-template systemd service unit
+  template:
+    src: consul-template_systemd_unit.service.j2
+    dest: /etc/systemd/system/consul-template.service
+    owner: root
+    group: root
+    mode: 0644
+  register: consul_template_systemd_unit_result
+
+- name: Reload systemd if necessary
+  systemd:
+    daemon_reload: yes
+    enabled: yes
+    name: consul-template
+  when: consul_template_systemd_unit_result.changed
+  notify: restart_consul_template
+
+- name: Create consul-template user
+  user:
+    name: "{{ consul_template_user }}"
+    password: "{{ consul_user_password_hash }}"
+    system: yes
+
+...

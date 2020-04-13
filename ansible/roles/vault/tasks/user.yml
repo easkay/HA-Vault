@@ -1,0 +1,18 @@
+---
+
+- name: Create private user group
+  group:
+    name: vault
+
+- name: Create vault user
+  user:
+    name: vault
+    create_home: false
+    home: "{{ vault_config_dir }}"
+    group: vault
+    groups: users
+    shell: /bin/false
+    password: "{{ vault_user_password_hash }}"
+    system: true
+
+...

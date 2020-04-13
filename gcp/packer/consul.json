@@ -1,0 +1,43 @@
+{
+    "variables": {
+        "gcp_account_file_path": null,
+        "gcp_project_id": null
+    },
+    "builders": [
+        {
+            "type":                            "googlecompute",
+            "account_file":                    "{{user `gcp_account_file_path`}}",
+            "project_id":                      "{{user `gcp_project_id`}}",
+            "source_image":                    "ubuntu-1804-bionic-v20200317",
+            "source_image_family":             "ubuntu-1804-lts",
+            "zone":                            "europe-west2-b",
+            "disable_default_service_account": true,
+            "image_name":                      "consul-{{isotime | clean_resource_name}}",
+            "image_family":                    "consul",
+            "ssh_username":                    "ubuntu",
+            "machine_type":                    "n1-standard-1",
+            "image_labels":                    {
+                                                   "system": "consul"
+                                               }
+        }
+    ],
+    "provisioners": [
+        {
+            "type":   "shell",
+            "inline": [
+                "timeout 60s bash -c \"while ! [ -f /var/lib/cloud/instance/boot-finished ]; do echo 'Waiting on cloud-init...'; sleep 2; done\"",
+                "sudo apt-get update",
+                "sudo apt-get upgrade -y || true"
+            ]
+        },
+        {
+            "type":                "ansible",
+            "playbook_file":       "{{ template_dir }}/../../ansible/consul.yml",
+            "extra_arguments":     "--vault-password-file={{ template_dir }}/../../ansible/vault-password",
+            "groups":              ["consul", "gcp"],
+            "host_alias":          "{{ sed \"s/-//\" uuid }}",
+            "inventory_directory": "{{ template_dir }}/../../ansible",
+            "user":                "ubuntu"
+        }
+    ]
+}

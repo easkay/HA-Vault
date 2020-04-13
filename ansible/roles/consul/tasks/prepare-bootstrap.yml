@@ -1,0 +1,18 @@
+---
+
+- name: Copy agent bootstrap script
+  copy:
+    src: agent-bootstrap.sh
+    dest: /etc/consul.d/agent-bootstrap.sh
+    mode: 0744
+    owner: root
+
+- name: Copy agent token
+  copy:
+    dest: "/etc/consul.d/agent-token"
+    content: "{{ consul_agent_acl_token }}"
+    owner: consul
+    group: root
+    mode: 0660
+
+...

@@ -1,0 +1,5 @@
+---
+consul_agent_only: true
+vault_consul_acl_token: "{{ lookup('file', 'roles/consul/files/tokens/vault') }}"
+consul_template_consul_token: "{{ lookup('file', 'roles/consul/files/tokens/haproxy') }}"
+...

@@ -1,0 +1,2 @@
+consul_datacentre: "europe-west2"
+haproxy_enable_incoming_proxy_protocol: false

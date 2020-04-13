@@ -1,0 +1,23 @@
+[Unit]
+Description=vault agent
+Requires=network-online.target consul.service
+After=network-online.target consul.service
+
+[Service]
+User=vault
+Group=vault
+PIDFile={{ vault_pid_dir }}/vault.pid
+PermissionsStartOnly=true
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=vault
+ExecStart={{ vault_binary_install_dir }}/vault server -config={{ vault_config_dir }}
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+KillSignal=SIGTERM
+Restart=on-failure
+RestartSec=42s
+TimeoutStopSec=15
+
+[Install]
+WantedBy=multi-user.target

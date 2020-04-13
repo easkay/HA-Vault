@@ -1,0 +1,25 @@
+{
+  "pid_file": "{{ vault_pid_dir }}/vault.pid",
+  "ui": true,
+  "disable_mlock": true,
+  "log_format": "json",
+  "listener": [{
+      "tcp": {
+        "address": "0.0.0.0:8200",
+        "proxy_protocol_behavior": "deny_unauthorized",
+        "proxy_protocol_authorized_addrs": [],
+        "tls_cert_file": "{{ vault_config_dir }}/{{ vault_crt_file|basename }}",
+        "tls_key_file": "{{ vault_config_dir }}/{{ vault_key_file|basename }}"
+      }
+  }],
+  "storage": {
+    "consul": {
+      "address": "127.0.0.1:8501",
+      "scheme": "https",
+      "token": "{{ vault_consul_acl_token }}",
+      "tls_ca_file": "{{ vault_config_dir }}/{{ vault_consulauth_ca_crt_file|basename }}",
+      "tls_cert_file":"{{ vault_config_dir }}/{{ vault_consulauth_crt_file|basename }}" ,
+      "tls_key_file": "{{ vault_config_dir }}/{{ vault_consulauth_key_file|basename }}"
+    }
+  }
+}

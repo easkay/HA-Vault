@@ -1,0 +1,36 @@
+max_stale = "10m"
+log_level = "warn"
+pid_file = "{{ consul_template_pid_dir }}/consul-template.pid"
+wait {
+  min = "5s"
+  max = "10s"
+}
+
+consul {
+  address = "127.0.0.1:8501"
+  token = "{{ consul_template_consul_token }}"
+  ssl {
+    enabled = true
+    verify = true
+    cert = "{{ consul_template_config_dir }}/{{ consul_template_consulauth_crt_file|basename }}"
+    key  = "{{ consul_template_config_dir }}/{{ consul_template_consulauth_key_file|basename }}"
+    ca_cert = "{{ consul_template_config_dir }}/{{ consul_template_consulauth_ca_crt_file|basename }}"
+  }
+}
+
+template {
+  source = "{{ consul_template_config_dir }}/templates/haproxy.cfg.ctmpl"
+  destination = "/etc/haproxy/haproxy.cfg"
+  create_dest_dirs = true
+  command = "sudo /bin/systemctl restart haproxy"
+  command_timeout = "60s"
+  error_on_missing_key = true
+  perms = 0600
+  backup = true
+  left_delimiter  = "<!"
+  right_delimiter = "!>"
+  wait {
+    min = "2s"
+    max = "10s"
+  }
+}

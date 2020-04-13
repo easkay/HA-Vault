@@ -1,0 +1,20 @@
+[Unit]
+Description=Consul-template dynamic config daemon
+Requires=network-online.target
+After=network.target
+
+[Service]
+User={{ consul_template_user }}
+Group={{ consul_template_user }}
+PIDFile={{ consul_template_pid_dir }}/consul-template.pid
+Restart=on-failure
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier={{ consul_template_syslog_program_name }}
+ExecStart={{ consul_template_binary_install_dir }}/consul-template $OPTIONS -pid-file={{ consul_template_pid_dir }}/consul-template.pid -config={{ consul_template_config_dir }}/consul-template.hcl
+ExecReload=/bin/kill -s HUP $MAINPID
+KillSignal=SIGINT
+TimeoutStopSec=15
+
+[Install]
+WantedBy=multi-user.target

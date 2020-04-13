@@ -1,0 +1,34 @@
+---
+
+- name: Create config directory
+  file:
+    path: "{{ consul_template_config_dir }}"
+    state: directory
+    owner: root
+    group: "{{ consul_template_user }}"
+    mode: 0775
+
+- name: Create templates directory
+  file:
+    path: "{{ consul_template_config_dir }}/templates"
+    state: directory
+    owner: root
+    group: "{{ consul_template_user }}"
+    mode: 0775
+
+- name: Setup tmpfiles config
+  template:
+    src: tmpfiles-consul-template.conf.j2
+    dest: /etc/tmpfiles.d/consul-template.conf
+  register: tmpfilesd_result
+
+- name: Ensure directories under tmpfiles.d exist
+  shell: "systemd-tmpfiles --create --remove"
+  when: tmpfilesd_result.changed
+
+- name: Change group ownership on HAProxy directories
+  file:
+    path: /etc/haproxy
+    group: "{{ consul_template_user }}"
+    mode: 0775
+    recurse: yes

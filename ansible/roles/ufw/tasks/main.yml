@@ -1,0 +1,14 @@
+---
+
+- name: Allow SSH through ufw
+  ufw:
+    direction: in
+    proto: tcp
+    to_port: '22'
+    rule: allow
+
+- name: Enable ufw
+  ufw:
+    state: enabled
+
+...

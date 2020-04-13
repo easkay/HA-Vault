@@ -1,0 +1,59 @@
+global
+  log         127.0.0.1 local0 info
+  log         127.0.0.1 local0 notice
+  maxconn     1000
+  daemon
+  spread-checks 4
+
+defaults
+  mode    tcp
+  log     global
+  balance roundrobin
+  retries 3
+  option  abortonclose
+  option  dontlognull
+  option  log-health-checks
+  timeout connect 10s
+  timeout client 30s
+  timeout server 30s
+
+frontend haproxy-monitoring
+  bind  *:80 {{ "accept-proxy" if haproxy_enable_incoming_proxy_protocol else "" }}
+  mode  http
+  stats enable
+  stats show-legends
+  stats uri     /haproxy-stats
+  stats admin   if FALSE
+
+frontend vault
+  mode tcp
+  bind *:443 {{ "accept-proxy" if haproxy_enable_incoming_proxy_protocol else "" }}
+  tcp-request inspect-delay 5s
+  tcp-request content accept if { req_ssl_hello_type 1 }
+  default_backend vault
+
+  # For each individual server
+<! range service "vault|any" !>
+  acl <! .Node !> req_ssl_sni -i <! .Node !>.{{ vault_lb_hostname }}
+  use_backend <! .Node !> if <! .Node !>
+<! end !>
+
+  acl vault         req_ssl_sni -i {{ vault_lb_hostname }}
+  use_backend vault         if vault
+
+<! range service "vault|any" !>
+backend <! .Node !>
+  mode tcp
+  option httpchk GET /v1/sys/health?standbyok=true&sealedcode=200&standbycode=200&uninitcode=200
+  http-check expect status 200
+  default-server inter 2s fastinter 1s downinter 1s
+  server <! .Node !> <! .Address !>:8200 check check-ssl port 8200 ca-file /etc/ssl/certs/vault-ca.pem send-proxy check-send-proxy
+<! end !>
+
+backend vault
+  mode tcp
+  option httpchk GET /v1/sys/health?standbyok=true
+  http-check expect status 200
+  default-server inter 2s fastinter 1s downinter 1s<! range service "vault|any" !>
+  server <! .Node !> <! .Address !>:8200 check check-ssl port 8200 ca-file /etc/ssl/certs/vault-ca.pem send-proxy check-send-proxy
+  <! end !>

@@ -1,0 +1,16 @@
+*.key
+vault-password
+*.tfstate
+*.tfstate.backup
+*.DS_Store
+.terraform
+ansible/roles/consul/files/tokens/*
+!ansible/roles/consul/files/tokens/.keep
+master-token
+ansible/roles/consul/files/consul_*
+ansible/roles/haproxy-consul-template/files/consul-template_*
+ansible/roles/vault/files/vault_*
+aws.vars
+gcp.vars
+*.auto.tfvars
+silver-catwalk*

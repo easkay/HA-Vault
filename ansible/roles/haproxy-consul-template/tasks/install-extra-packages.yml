@@ -1,0 +1,8 @@
+---
+
+- name: Install jq
+  apt:
+    name: jq
+    state: present
+
+...

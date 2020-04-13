@@ -1,0 +1,10 @@
+{{ consul_log_dir }}/*.log {
+    daily
+    rotate 30
+    missingok
+    notifempty
+    compress
+    postrotate
+      systemctl kill -s HUP rsyslog.service
+    endscript
+}

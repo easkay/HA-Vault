@@ -1,0 +1,49 @@
+{
+    "variables": {
+        "aws_access_key": null,
+        "aws_secret_key": null,
+        "region":         null
+    },
+    "builders": [
+        {
+            "type":          "amazon-ebs",
+            "access_key":    "{{user `aws_access_key`}}",
+            "secret_key":    "{{user `aws_secret_key`}}",
+            "region":        "{{user `region`}}",
+            "source_ami":    "ami-077a5b1762a2dde35",
+            "instance_type": "t2.medium",
+            "ami_name":      "vault-{{isotime | clean_resource_name}}",
+            "ssh_username":  "ubuntu",
+            "tags":          {
+                "system": "vault"
+            }
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "file",
+            "source": "fetch-tag.sh",
+            "destination": "/tmp/fetch-tag"
+        },
+        {
+            "type":   "shell",
+            "inline": [
+                "timeout 60s bash -c \"while ! [ -f /var/lib/cloud/instance/boot-finished ]; do echo 'Waiting on cloud-init...'; sleep 2; done\"",
+                "sudo apt-get update",
+                "sudo apt-get upgrade -y || true",
+                "sudo apt-get install awscli cloud-utils -y",
+                "sudo mv /tmp/fetch-tag /usr/local/bin/",
+                "sudo chmod a+x /usr/local/bin/fetch-tag"
+            ]
+        },
+        {
+            "type":                "ansible",
+            "playbook_file":       "{{ template_dir }}/../../ansible/vault.yml",
+            "extra_arguments":     "--vault-password-file={{ template_dir }}/../../ansible/vault-password",
+            "groups":              ["vault", "aws"],
+            "host_alias":          "{{ sed \"s/-//\" uuid }}",
+            "inventory_directory": "{{ template_dir }}/../../ansible",
+            "user":                "ubuntu"
+        }
+    ]
+}

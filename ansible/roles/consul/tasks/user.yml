@@ -1,0 +1,18 @@
+---
+
+- name: Create private user group
+  group:
+    name: consul
+
+- name: Create consul user
+  user:
+    name: consul
+    create_home: false
+    home: "{{ consul_config_dir }}"
+    group: consul
+    groups: users
+    shell: /bin/false
+    password: "{{ consul_user_password_hash }}"
+    system: true
+
+...

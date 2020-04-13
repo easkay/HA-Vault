@@ -1,0 +1,21 @@
+---
+consul_version: 1.7.2
+consul_verify_binary_checksum: true
+consul_download_filename: "consul_{{ consul_version }}_linux_amd64.zip"
+consul_overwrite_binary: false
+# consul_user_password_hash:
+consul_binary_install_dir: /usr/local/bin
+consul_pid_dir: /run/consul
+consul_tmp_dir: /tmp/consul
+consul_config_dir: /etc/consul.d
+consul_data_dir: /opt/consul
+consul_log_dir: /var/log/consul
+consul_crt_file: consul.crt
+consul_ca_crt_file: consul-ca.crt
+consul_key_file: consul.key
+# consul_gossip_encryption_key: # Populate this with the output from consul-keygen
+consul_agent_acl_token: "{{ lookup('file', 'tokens/agent') }}"
+consul_default_acl_token: "{{ lookup('file', 'tokens/agent') }}"
+consul_datacenter: "eu-west-2"
+consul_agent_only: false
+...

@@ -1,0 +1,11 @@
+---
+
+- hosts: all
+  roles:
+    - ufw
+    - consul
+    - vault
+    - haproxy-consul-template
+  become: yes
+
+...

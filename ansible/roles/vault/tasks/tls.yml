@@ -1,0 +1,73 @@
+---
+
+- name: Copy Vault CA crt
+  copy:
+    src: "{{ vault_ca_crt_file }}"
+    dest: "{{ vault_config_dir }}/{{ vault_ca_crt_file|basename }}"
+    owner: root
+    group: vault
+
+- name: Copy Vault crt
+  copy:
+    src: "{{ vault_crt_file }}"
+    dest: "{{ vault_config_dir }}/{{ vault_crt_file|basename }}"
+    owner: root
+    group: vault
+    mode: 0640
+
+- name: Copy Vault key
+  copy:
+    src: "{{ vault_key_file }}"
+    dest: "{{ vault_config_dir }}/{{ vault_key_file|basename }}"
+    owner: root
+    group: vault
+    mode: 0640
+
+- name: Copy ConsulAuth CA crt
+  copy:
+    src: "{{ vault_consulauth_ca_crt_file }}"
+    dest: "{{ vault_config_dir }}/{{ vault_consulauth_ca_crt_file|basename }}"
+    owner: root
+    group: vault
+
+- name: Copy ConsulAuth crt
+  copy:
+    src: "{{ vault_consulauth_crt_file }}"
+    dest: "{{ vault_config_dir }}/{{ vault_consulauth_crt_file|basename }}"
+    owner: root
+    group: vault
+    mode: 0640
+
+- name: Copy ConsulAuth key
+  copy:
+    src: "{{ vault_consulauth_key_file }}"
+    dest: "{{ vault_config_dir }}/{{ vault_consulauth_key_file|basename }}"
+    owner: root
+    group: vault
+    mode: 0640
+
+- name: Copy Vault CA crt to system store
+  copy:
+    src: "{{ vault_config_dir }}/{{ vault_ca_crt_file|basename }}"
+    dest: "/usr/local/share/ca-certificates/{{ vault_ca_crt_file|basename }}"
+    owner: root
+    group: root
+    mode: 0644
+    remote_src: yes
+  register: vault_ca_system_store_result
+
+- name: Copy Consul CA crt to system store
+  copy:
+    src: "{{ vault_config_dir }}/{{ vault_consulauth_ca_crt_file|basename }}"
+    dest: "/usr/local/share/ca-certificates/{{ vault_consulauth_ca_crt_file|basename }}"
+    owner: root
+    group: root
+    mode: 0644
+    remote_src: yes
+  register: vault_consulauth_ca_system_store_result
+
+- name: Update system CA bundle
+  shell: update-ca-certificates
+  when: vault_ca_system_store_result.changed or vault_consulauth_ca_system_store_result.changed
+
+...

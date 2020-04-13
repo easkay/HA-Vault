@@ -1,0 +1,37 @@
+---
+
+- name: Create config dir
+  file:
+    path: "{{ vault_config_dir }}"
+    state: directory
+    owner: root
+    group: vault
+    mode: 0750
+
+- name: Create data directory
+  file:
+    path: "{{ vault_data_dir }}"
+    state: directory
+    owner: vault
+    group: vault
+    mode: 0750
+
+- name: Create log directory
+  file:
+    path: "{{ vault_log_dir }}"
+    state: directory
+    owner: "syslog"
+    group: vault
+    mode: 0775
+
+- name: Setup tmpfiles config
+  template:
+    src: tmpfiles-vault.conf.j2
+    dest: /etc/tmpfiles.d/vault.conf
+  register: tmpfilesd_result
+
+- name: Ensure directories under tmpfiles.d exist
+  shell: "systemd-tmpfiles --create --remove"
+  when: tmpfilesd_result.changed
+
+...

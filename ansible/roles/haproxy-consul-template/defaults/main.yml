@@ -1,0 +1,21 @@
+---
+consul_template_version: 0.22.0
+consul_template_verify_binary_checksum: true
+consul_template_download_filename: "consul-template_{{ consul_template_version }}_linux_amd64.zip"
+consul_template_overwrite_binary: false
+consul_template_user: consul-template
+# consul_template_user_password_hash:
+consul_template_binary_install_dir: /usr/local/bin
+consul_template_pid_dir: /run/consul-template
+consul_template_tmp_dir: /tmp/consul-template
+consul_template_config_dir: /etc/consul-template.d
+consul_template_log_dir: /var/log/consul-template
+vault_ca_crt_file: vault-ca.crt
+consul_template_consulauth_ca_crt_file: consul-ca.crt
+consul_template_consulauth_crt_file: consul.crt
+consul_template_consulauth_key_file: consul.key
+consul_template_syslog_program_name: consul-template
+# consul_template_consul_token:
+vault_lb_hostname: vault.example.com
+haproxy_enable_incoming_proxy_protocol: true
+...

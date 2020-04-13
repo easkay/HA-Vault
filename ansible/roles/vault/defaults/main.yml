@@ -1,0 +1,21 @@
+---
+vault_version: 1.4.0
+vault_verify_binary_checksum: true
+vault_download_filename: "vault_{{ vault_version }}_linux_amd64.zip"
+vault_overwrite_binary: false
+# vault_user_password_hash:
+vault_binary_install_dir: /usr/local/bin
+vault_pid_dir: /run/vault
+vault_tmp_dir: /tmp/vault
+vault_config_dir: /etc/vault.d
+vault_data_dir: /opt/vault
+vault_log_dir: /var/log/vault
+vault_crt_file: vault.crt
+vault_ca_crt_file: vault-ca.crt
+vault_key_file: vault.key
+vault_consulauth_ca_crt_file: consul-ca.crt
+vault_consulauth_crt_file: consul.crt
+vault_consulauth_key_file: consul.key
+# vault_consul_acl_token:
+
+...

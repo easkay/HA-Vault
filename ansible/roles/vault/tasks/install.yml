@@ -1,0 +1,66 @@
+---
+
+- name: Install dependencies
+  package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - unzip
+    - jq
+
+- name: Fetch binary checksums file
+  get_url:
+    url: "https://releases.hashicorp.com/vault/{{ vault_version }}/vault_{{ vault_version }}_SHA256SUMS"
+    dest: "{{ role_path }}/files/"
+    force: yes
+  delegate_to: localhost
+  become: no
+  when: vault_verify_binary_checksum
+
+- name: Find binary checksum
+  shell: "grep {{ vault_download_filename }} {{ role_path }}/files/vault_{{ vault_version }}_SHA256SUMS | grep -oE '^\\S+'"
+  delegate_to: localhost
+  become: no
+  when: vault_verify_binary_checksum
+  register: vault_binary_expected_checksum
+
+- name: Fetch vault binary
+  get_url:
+    url: "https://releases.hashicorp.com/vault/{{ vault_version }}/{{ vault_download_filename }}"
+    dest: "{{ role_path }}/files/"
+    checksum: "{{ (vault_verify_binary_checksum)|ternary('sha256:'+vault_binary_expected_checksum.stdout, '') }}"
+  delegate_to: localhost
+  become: no
+
+- name: Remove existing binary
+  file:
+    path: "{{ vault_binary_install_dir }}/vault"
+    state: absent
+  when: vault_overwrite_binary
+
+- name: Install binary
+  unarchive:
+    src: "{{ vault_download_filename }}"
+    dest: "{{ vault_binary_install_dir }}/"
+    creates: "{{ vault_binary_install_dir }}/vault"
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Install vault systemd service unit
+  template:
+    src: vault_systemd.service.j2
+    dest: /etc/systemd/system/vault.service
+    owner: root
+    group: root
+    mode: 0644
+  register: vault_systemd_unit_result
+
+- name: Reload systemd if necessary
+  systemd:
+    daemon_reload: yes
+    enabled: yes
+    name: vault
+  when: vault_systemd_unit_result.changed
+
+...

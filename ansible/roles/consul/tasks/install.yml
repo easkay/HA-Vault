@@ -1,0 +1,66 @@
+---
+
+- name: Install dependencies
+  package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - unzip
+    - jq
+
+- name: Fetch binary checksums file
+  get_url:
+    url: "https://releases.hashicorp.com/consul/{{ consul_version }}/consul_{{ consul_version }}_SHA256SUMS"
+    dest: "{{ role_path }}/files/"
+    force: yes
+  delegate_to: localhost
+  become: no
+  when: consul_verify_binary_checksum
+
+- name: Find binary checksum
+  shell: "grep {{ consul_download_filename }} {{ role_path }}/files/consul_{{ consul_version }}_SHA256SUMS | grep -oE '^\\S+'"
+  delegate_to: localhost
+  become: no
+  when: consul_verify_binary_checksum
+  register: consul_binary_expected_checksum
+
+- name: Fetch consul binary
+  get_url:
+    url: "https://releases.hashicorp.com/consul/{{ consul_version }}/{{ consul_download_filename }}"
+    dest: "{{ role_path }}/files/"
+    checksum: "{{ (consul_verify_binary_checksum)|ternary('sha256:'+consul_binary_expected_checksum.stdout, '') }}"
+  delegate_to: localhost
+  become: no
+
+- name: Remove existing binary
+  file:
+    path: "{{ consul_binary_install_dir }}/consul"
+    state: absent
+  when: consul_overwrite_binary
+
+- name: Install binary
+  unarchive:
+    src: "{{ consul_download_filename }}"
+    dest: "{{ consul_binary_install_dir }}/"
+    creates: "{{ consul_binary_install_dir }}/consul"
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Install consul systemd service unit
+  template:
+    src: consul_systemd.service.j2
+    dest: /etc/systemd/system/consul.service
+    owner: root
+    group: root
+    mode: 0644
+  register: consul_systemd_unit_result
+
+- name: Reload systemd if necessary
+  systemd:
+    daemon_reload: yes
+    enabled: yes
+    name: consul
+  when: consul_systemd_unit_result.changed
+
+...

@@ -1,0 +1,16 @@
+---
+
+- name: Allow HTTP through firewall
+  ufw:
+   direction: "in"
+   proto: "tcp"
+   rule: "allow"
+   to_port: "80"
+
+- name: Allow HTTPS through firewall
+  ufw:
+   direction: "in"
+   proto: "tcp"
+   rule: "allow"
+   to_port: "443"
+...
