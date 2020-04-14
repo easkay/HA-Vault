@@ -33,7 +33,7 @@
             "playbook_file":       "{{ template_dir }}/../../ansible/consul.yml",
             "extra_arguments":     "--vault-password-file={{ template_dir }}/../../ansible/vault-password",
             "groups":              ["consul", "aws"],
-            "host_alias":          "{{ sed \"s/-//\" uuid }}",
+            "host_alias":          "{{ replace_all \"-\" \"\" uuid }}",
             "inventory_directory": "{{ template_dir }}/../../ansible",
             "user":                "ubuntu"
         }
