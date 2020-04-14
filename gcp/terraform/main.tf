@@ -115,6 +115,7 @@ resource google_compute_region_instance_group_manager consul {
   region             = data.google_client_config.current.region
   target_size        = 3
   target_pools       = [google_compute_target_pool.consul.self_link]
+  wait_for_instances = true
 
   version {
     name              = "consul"
@@ -145,7 +146,7 @@ resource google_compute_instance vault {
   count        = 2
   name         = "vault-${count.index}"
   machine_type = "n1-standard-1"
-  tags         = ["consul-${data.google_client_config.current.region}", "vault", "haproxy"]
+  tags         = ["consul-${data.google_client_config.current.region}", "consul", "vault", "haproxy"]
   zone         = "${data.google_client_config.current.region}-a"
   hostname     = "vault-${count.index}.${var.vault_hostname}"
 
@@ -236,6 +237,7 @@ resource null_resource consul_acl_bootstrap {
     }
 
     command = <<EOF
+sleep 120
 success="1"
 consul_bootstrap_output=""
 while [[ "$success" -gt "0" ]]; do
@@ -402,7 +404,15 @@ resource google_compute_firewall consul_deny_all {
   target_tags = ["consul"]
 
   deny {
-    protocol = "all"
+    protocol = "tcp"
+  }
+
+  deny {
+    protocol = "udp"
+  }
+
+  deny {
+    protocol = "icmp"
   }
 }
 
@@ -413,7 +423,15 @@ resource google_compute_firewall vault_deny_all {
   target_tags = ["vault"]
 
   deny {
-    protocol = "all"
+    protocol = "tcp"
+  }
+
+  deny {
+    protocol = "udp"
+  }
+
+  deny {
+    protocol = "icmp"
   }
 }
 
@@ -424,6 +442,14 @@ resource google_compute_firewall haproxy_deny_all {
   target_tags = ["haproxy"]
 
   deny {
-    protocol = "all"
+    protocol = "tcp"
+  }
+
+  deny {
+    protocol = "udp"
+  }
+
+  deny {
+    protocol = "icmp"
   }
 }

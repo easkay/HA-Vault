@@ -111,7 +111,7 @@ resource aws_iam_instance_profile describe-instances {
 }
 
 resource aws_launch_configuration consul {
-  depends_on = ["aws_iam_role_policy_attachment.describe-instances"]
+  depends_on = [aws_iam_role_policy_attachment.describe-instances]
 
   name_prefix                 = "consul"
   image_id                    = data.aws_ami.consul.image_id

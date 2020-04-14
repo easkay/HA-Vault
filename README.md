@@ -6,56 +6,70 @@ _NOTE_: This setup does not ship ready out-of-the-box, there are some tweaks the
 
 This repo assumes you're running on Linux or macOS.
 
-Ensure you have Terraform 0.12, Packer 1.5, and Vault 1.4 installed.
+Ensure you have Terraform 0.12, Packer 1.5, Vault 1.4, and ansible 2.8 (min) installed.
 This repo assumes some prior knowledge and experience with Vault, Terraform, Packer, and at least one of the cloud providers mentioned.
 
 ### Common setup
 
-1. Adjust the variables in the `tls-bootstrap/bootstrap.sh` script, particularly any containing `example.com`.
-1. Adjust ansible variables in the `ansible/group_vars/example.yml` file as needed, particularly the `vault_lb_hostname` variable.
-1. Within the `ansible` folder, run the following to create Consul tokens for the necessary use cases:
+1. Replace any instances of `example.com` in the `tls-bootstrap/bootstrap.sh` with a domain that you control.
+1. Replace any instances of `example.com` in the `ansible/group_vars/example.yml` file with the same domain as the previous step.
+1. `cd` into the `ansible` folder and run the following to create Consul tokens for the necessary use cases:
     ```
     uuidgen | tr '[:upper:]' '[:lower:]' > roles/consul/files/tokens/agent
     uuidgen | tr '[:upper:]' '[:lower:]' > roles/consul/files/tokens/haproxy
     uuidgen | tr '[:upper:]' '[:lower:]' > roles/consul/files/tokens/vault
     ```
+1. `cd` into the `tls-bootstrap` folder, run `./bootstrap.sh`.
 
-Pick a cloud provider - AWS, GCP, or Azure and setup the infrastructure as follows
+Pick a cloud provider - AWS, GCP, or Azure and setup the infrastructure as follows.
+It's recommended to have a console for your chosen provider open and available, having logged in.
 
 ### AWS
 
 1. Ensure you have a default VPC that has a minimum of 2 subnets and outbound internet access.
-    If you don't have one or don't want one, adjust the Packer templates and Terraform to look for a different pre-configured VPC.
-1. Adjust the Packer and Terrafom variables
+    If you don't have one or don't want one, adjust the Packer templates and Terraform to use a different pre-configured VPC.
+1. Adjust the Packer and Terrafom variables.
     1. Check the `aws/packer/example.vars` file and supply credentials and a region.
-    1. Check the `aws/terraform/example.tfvars` file and adjust the hostnames and trusted external IPs to fit your setup.
-1. Build the images with Packer
-    1. Within the `aws/packer` folder, run `packer build --var-file example.vars consul.json` and `packer build --var-file example.vars vault.json`.
-1. Run the Terraform
-    1. Within the `aws/terraform` folder, run `terraform init ; terraform apply --var-file example.tfvars` and approve the plan once you've reviewed it.
-    1. While Terraform is running, setup the domain configured in `aws/terraform/example.tfvars` to point at the AWS ELB. This can be done with a CNAME record in your DNS zone, or by resolving the DNS record (`dig <hostname>`) and editing the hosts file:
+    1. Check the `aws/terraform/example.tfvars` file and adjust the hostnames and trusted external IPs to fit your setup. It's recommended to add the outbound IP of your machine to this list. _NOTE_: AWS requires that these addresses be in CIDR format.
+1. Build the images with Packer.
+    1. `cd` into the `aws/packer` folder, run
+        ```
+        packer build --var-file example.vars consul.json
+        packer build --var-file example.vars vault.json
+        ```
+1. Run the Terraform.
+    1. `cd` into the `aws/terraform` folder, run `terraform init ; terraform apply --var-file example.tfvars` and if the plan looks good, approve it.
+    1. **While Terraform is running**, setup the domain configured in `aws/terraform/example.tfvars` to point at the AWS ELB. This can be done with a CNAME record in your DNS zone, or by resolving the DNS record (`dig <hostname>`) and editing the hosts file as follows. If the `dig` command doesn't produce IPs for the ELB, ensure it's finished provisioning and retry.
         ```
         <ip_1> vault-0.vault.example.com vault-1.vault.example.com vault.example.com consul.example.com
         <ip_2> vault-0.vault.example.com vault-1.vault.example.com vault.example.com consul.example.com
         <ip_3> vault-0.vault.example.com vault-1.vault.example.com vault.example.com consul.example.com
         ```
+    1. If the Terraform apply step hangs on provisioning `null_resource.consul_acl_bootstrap`, check that Consul is responding at `consul.<your_domain>:8501`.
+    1. If you receive an error similar to `Failed to create new policy: Unexpected response code: 500 (<specific error message>)`, the situation can be recovered by locating the `null_resource consul_acl_bootstrap` resource and commenting all lines of the `command` _except_ those which start with `consul acl policy` or `consul acl token`. Terraform should then be re-run.
 
 ### GCP
 
 1. Ensure you have a default VPC (named 'default') with a subnet (named 'default') that has outbound internet access.
     If you don't have one or don't want one, adjust the Packer templates and Terraform to look for a different pre-configured VPC.
-1. Adjust the Packer and Terrafom variables
-    1. Check the `gcp/packer/example.vars` file and supply credentials and a region.
-    1. Check the `gcp/terraform/example.tfvars` file and adjust the hostnames and trusted external IPs to fit your setup.
-1. Build the images with Packer
-    1. Within the `gcp/packer` folder, run `packer build --var-file example.vars consul.json` and `packer build --var-file example.vars vault.json`.
-1. Run the Terraform
-    1. Within the `gcp/terraform` folder, run `terraform init ; terraform apply --var-file example.tfvars` and approve the plan once you've reviewed it.
-    1. While Terraform is running, setup the domain configured in `gcp/terraform/example.tfvars` to point at the Load Balancer frontends. This can be done with A records in your DNS zone, or by editing the hosts file:
+1. Adjust the Packer and Terrafom variables.
+    1. Check the `gcp/packer/example.vars` file and supply credentials and a project ID.
+    1. Check the `gcp/terraform/example.tfvars` file and supply credentials and adjust the hostnames and trusted external IPs to fit your setup. It's recommended to add the outbound IP of your machine to this list.
+1. Build the images with Packer.
+    1. `cd` into the `gcp/packer` folder, run
+        ```
+        packer build --var-file example.vars consul.json
+        packer build --var-file example.vars vault.json
+        ```
+1. Run the Terraform.
+    1. `cd` into the `gcp/terraform` folder, run `terraform init ; terraform apply --var-file example.tfvars` and if the plan looks good, approve it.
+    1. **While Terraform is running**, setup the domain configured in `gcp/terraform/example.tfvars` to point at the Load Balancer frontends. This can be done with A records in your DNS zone, or by editing the hosts file:
         ```
         <consul_ip> consul.example.com
         <vault_ip> vault-0.vault.example.com vault-1.vault.example.com vault.example.com
         ```
+    1. If the Terraform apply step hangs on provisioning `null_resource.consul_acl_bootstrap`, check that Consul is responding at `consul.<your_domain>:8501`.
+    1. If you receive an error similar to `Failed to create new policy: Unexpected response code: 500 (<specific error message>)`, the situation can be recovered by locating the `null_resource consul_acl_bootstrap` resource and commenting all lines of the `command` _except_ those which start with `consul acl policy` or `consul acl token`. Terraform should then be re-run.
 
 ### Azure
 
@@ -63,37 +77,45 @@ Pick a cloud provider - AWS, GCP, or Azure and setup the infrastructure as follo
     1. Create a new resource group, called 'default'.
     1. Create a new virtual network, called 'default' with whatever IP space fits your needs.
     1. Create a new network security group, called 'default' and associate it with the subnet in the virtual network.
-1. Adjust the Packer and Terrafom variables
-    1. Check the `azure/packer/example.vars` file and supply credentials and a region.
+1. Adjust the Packer and Terrafom variables.
+    1. Check the `azure/packer/example.vars` file and supply a subscription ID, a resource group name, and a region.
     1. Check the `azure/terraform/example.tfvars` file and adjust the hostnames and trusted external IPs to fit your setup.
-1. Build the images with Packer
-    1. Within the `azure/packer` folder, run `packer build --var-file example.vars consul.json` and `packer build --var-file example.vars vault.json`.
-    1. If you run into issues authenticating with AzureAD, service principal authentication can be used instead, see [the packer docs](https://packer.io/docs/builders/azure-arm.html#service-principal).
-1. Run the Terraform
-    1. Within the `azure/terraform` folder, run `terraform init ; terraform apply --var-file example.tfvars` and approve the plan once you've reviewed it.
-    1. While Terraform is running, setup the domain configured in `azure/terraform/example.tfvars` to point at the Load Balancer public IP. This can be done with an A record in your DNS zone, or by editing the hosts file:
+1. Login to the azure CLI if not already, and select the appropriate subscription with `az account set -s <subscription name or ID>`.
+1. Build the images with Packer.
+    1. `cd` into the `azure/packer` folder, run
+        ```
+        packer build --var-file example.vars consul.json
+        packer build --var-file example.vars vault.json
+        ```
+    1. If you run into issues authenticating with AzureAD, service principal authentication can be used instead. See [the packer docs](https://packer.io/docs/builders/azure-arm.html#service-principal).
+1. Run the Terraform.
+    1. `cd` into the `azure/terraform` folder, run `terraform init ; terraform apply --var-file example.tfvars` and if the plan looks good, approve it.
+    1. **While Terraform is running**, setup the domain configured in `azure/terraform/example.tfvars` to point at the Load Balancer public IP. This can be done with an A record in your DNS zone, or by editing the hosts file:
         ```
         <public_ip> vault-0.vault.example.com vault-1.vault.example.com vault.example.com consul.example.com
         ```
+    1. You may receive an error relating to HealthProbes when creating the scale set for Consul, in this case, re-attempt the running of Terraform.
+    1. If you receive an error similar to `Failed to create new policy: Unexpected response code: 500 (<specific error message>)`, the situation can be recovered by locating the `null_resource consul_acl_bootstrap` resource and commenting all lines of the `command` _except_ those which start with `consul acl policy` or `consul acl token`. Terraform should then be re-run.
 
 ### Testing and Usage
 
 1. Prepare a client certificate for use with Consul.
-    1. In the `ansible` folder, run `openssl pkcs12 -export -in consul.crt -inkey consul.key -out consul.p12` and enter a password when prompted.
+    1. `cd` into the `ansible` folder, run `openssl pkcs12 -export -in consul.crt -inkey consul.key -out consul.p12` and enter a password when prompted.
     1. Import this certificate into your browser of choice.
-1. Try to access Consul by browsing to https://consul.<your_domain>:8501/ui, select the certificate when prompted.
-1. Find the master token created during bootstrap and supply it to the UI, it should be in a file at `aws/terraform/master-token`.
+1. Try to access Consul by browsing to `https://consul.<your_domain>:8501/ui`, select the certificate when prompted.
+1. Click on the `ACL` navbar item.
+1. Find the master token created during bootstrap and supply it to the UI, it should be in a file at `<cloud_provider>/terraform/master-token`.
 1. Try to access the HAProxy stats page for vault by visiting `http://vault.<your_domain>/haproxy-stats` or `http://<stats_ip>/haproxy-stats` if running on GCP.
 1. Initialise Vault and unseal if you wish to experiment further.
-    1. Setup some useful environment variables, first change to the `ansible` directory.
+    1. `cd` into the `ansible` folder, and setup some useful environment variables.
         ```
-        export VAULT_ADDR=https://vault.<your_domain>
+        export VAULT_ADDR=https://vault-0.vault.<your_domain>
         export VAULT_CACERT="$(pwd)/vault-ca.crt"
         ```
-    1. Run `vault operator init`
-    1. Capture the unseal keys and root token from the output.
-    1. Unseal a specific Vault node by running the following `vault operator unseal` and supplying an unseal key when prompted.
-    1. Once enough keys have been entered (3 by default), check the status in HAProxy and look for the server that was just unsealed - it should be green at the bottom.
+    1. Run `vault operator init`.
+    1. Copy the unseal keys and root token from the output and paste them into a text editor.
+    1. Unseal the specific Vault node by running the following `vault operator unseal` and supplying an unseal key when prompted. Repeat this process until the node is unsealed.
+    1. Once enough keys have been entered (3 by default), refresh the HAProxy stats page and look for the server that was just unsealed (vault-0) - it should be green at the bottom.
 
 ## Getting started (more in-depth)
 
