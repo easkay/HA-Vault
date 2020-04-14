@@ -39,8 +39,7 @@
         {
             "type":                "ansible",
             "playbook_file":       "{{ template_dir }}/../../ansible/vault.yml",
-            "extra_arguments":     "--vault-password-file={{ template_dir }}/../../ansible/vault-password",
-            "groups":              ["vault", "aws"],
+            "groups":              ["vault", "aws", "example"],
             "host_alias":          "{{ replace_all \"-\" \"\" uuid }}",
             "inventory_directory": "{{ template_dir }}/../../ansible",
             "user":                "ubuntu"

@@ -1,10 +1,7 @@
 #!/bin/bash
 
-# Configurables
-CERTIFICATE_DOMAIN="vault.example.com" # Change this to match the auto-hostname scheme of your chosen cloud provider
+CONSUL_DATACENTRE="example-dc"
 VAULT_PKI_ROLE_NAME="bootstrap"
-
-# Internals
 
 export VAULT_ADDR=http://127.0.0.1:8200
 export VAULT_FORMAT=json
@@ -26,17 +23,22 @@ setup_pki_engine_for() {
 generate_certificate_for() {
   TARGET_SYSTEM="$1"
   SECRET_BACKEND_PATH="${TARGET_SYSTEM}-https-root"
-  CERT_JSON=$(vault write "${SECRET_BACKEND_PATH}/issue/${VAULT_PKI_ROLE_NAME}" common_name="$CERTIFICATE_DOMAIN" alt_names="consul,*.${CERTIFICATE_DOMAIN},*.eu-west-2.consul,localhost" ip_sans="127.0.0.1" ttl=875999h)
+  CERT_JSON=$(vault write "${SECRET_BACKEND_PATH}/issue/${VAULT_PKI_ROLE_NAME}" common_name="$CERTIFICATE_DOMAIN" alt_names="consul,*.${CERTIFICATE_DOMAIN},*.${CONSUL_DATACENTRE}.consul,localhost" ip_sans="127.0.0.1" ttl=875999h)
   echo "$CERT_JSON" | jq -r '.data.certificate' > "${TARGET_SYSTEM}.crt"
   echo "$CERT_JSON" | jq -r '.data.issuing_ca' > "${TARGET_SYSTEM}-ca.crt"
   echo "$CERT_JSON" | jq -r '.data.private_key' > "${TARGET_SYSTEM}.key"
 }
 
+# Change the CERTIFICATE_DOMAIN variable to match your domain, keep the 'consul.' at the start
 CERTIFICATE_DOMAIN="consul.example.com"
 setup_pki_engine_for "consul"
 generate_certificate_for "consul"
+cp consul* ../ansible/
+
+# Change the CERTIFICATE_DOMAIN variable to match your domain, keep the 'vault.' at the start
 CERTIFICATE_DOMAIN="vault.example.com"
 setup_pki_engine_for "vault"
 generate_certificate_for "vault"
+cp vault* ../ansible/
 
 kill "$VAULT_SERVER_PID"

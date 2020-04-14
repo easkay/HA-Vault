@@ -1,11 +1,14 @@
 variable vault_hostname {}
 variable consul_hostname {}
 variable trusted_external_ips { type = list(string) }
+variable credentials {}
+variable project {}
+variable region {}
 
 provider google {
-  credentials = "silver-catwalk-201620-f2003f56351b.json"
-  project     = "silver-catwalk-201620"
-  region      = "europe-west2"
+  credentials = var.credentials
+  project     = var.project
+  region      = var.region
 }
 
 locals {

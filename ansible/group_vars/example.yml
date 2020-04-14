@@ -1,0 +1,6 @@
+consul_user_password_hash: "$6$ufl3OpgY5$9y8.WgmbjXoWjWZtYmn.glLx3u7fH4Vmnts7kscd0Nn1BSLJSjRP7TJf5Sj93GLsHR.Rnp3i2oPbGW37nPjSZ/"
+consul_gossip_encryption_key: "VEMZ9AFKup9uYwgAGdLrMA=="
+consul_datacenter: "example-dc"
+consul_template_user_password_hash: "$6$ufl3OpgY5$9y8.WgmbjXoWjWZtYmn.glLx3u7fH4Vmnts7kscd0Nn1BSLJSjRP7TJf5Sj93GLsHR.Rnp3i2oPbGW37nPjSZ/"
+vault_lb_hostname: vault.example.com
+vault_user_password_hash: "$6$ufl3OpgY5$9y8.WgmbjXoWjWZtYmn.glLx3u7fH4Vmnts7kscd0Nn1BSLJSjRP7TJf5Sj93GLsHR.Rnp3i2oPbGW37nPjSZ/"

@@ -2,7 +2,100 @@
 
 _NOTE_: This setup does not ship ready out-of-the-box, there are some tweaks the end user should do.
 
-## Getting started
+## Super-quick getting started (try it out)
+
+This repo assumes you're running on Linux or macOS.
+
+Ensure you have Terraform 0.12, Packer 1.5, and Vault 1.4 installed.
+This repo assumes some prior knowledge and experience with Vault, Terraform, Packer, and at least one of the cloud providers mentioned.
+
+### Common setup
+
+1. Adjust the variables in the `tls-bootstrap/bootstrap.sh` script, particularly any containing `example.com`.
+1. Adjust ansible variables in the `ansible/group_vars/example.yml` file as needed, particularly the `vault_lb_hostname` variable.
+1. Within the `ansible` folder, run the following to create Consul tokens for the necessary use cases:
+    ```
+    uuidgen | tr '[:upper:]' '[:lower:]' > roles/consul/files/tokens/agent
+    uuidgen | tr '[:upper:]' '[:lower:]' > roles/consul/files/tokens/haproxy
+    uuidgen | tr '[:upper:]' '[:lower:]' > roles/consul/files/tokens/vault
+    ```
+
+Pick a cloud provider - AWS, GCP, or Azure and setup the infrastructure as follows
+
+### AWS
+
+1. Ensure you have a default VPC that has a minimum of 2 subnets and outbound internet access.
+    If you don't have one or don't want one, adjust the Packer templates and Terraform to look for a different pre-configured VPC.
+1. Adjust the Packer and Terrafom variables
+    1. Check the `aws/packer/example.vars` file and supply credentials and a region.
+    1. Check the `aws/terraform/example.tfvars` file and adjust the hostnames and trusted external IPs to fit your setup.
+1. Build the images with Packer
+    1. Within the `aws/packer` folder, run `packer build --var-file example.vars consul.json` and `packer build --var-file example.vars vault.json`.
+1. Run the Terraform
+    1. Within the `aws/terraform` folder, run `terraform init ; terraform apply --var-file example.tfvars` and approve the plan once you've reviewed it.
+    1. While Terraform is running, setup the domain configured in `aws/terraform/example.tfvars` to point at the AWS ELB. This can be done with a CNAME record in your DNS zone, or by resolving the DNS record (`dig <hostname>`) and editing the hosts file:
+        ```
+        <ip_1> vault-0.vault.example.com vault-1.vault.example.com vault.example.com consul.example.com
+        <ip_2> vault-0.vault.example.com vault-1.vault.example.com vault.example.com consul.example.com
+        <ip_3> vault-0.vault.example.com vault-1.vault.example.com vault.example.com consul.example.com
+        ```
+
+### GCP
+
+1. Ensure you have a default VPC (named 'default') with a subnet (named 'default') that has outbound internet access.
+    If you don't have one or don't want one, adjust the Packer templates and Terraform to look for a different pre-configured VPC.
+1. Adjust the Packer and Terrafom variables
+    1. Check the `gcp/packer/example.vars` file and supply credentials and a region.
+    1. Check the `gcp/terraform/example.tfvars` file and adjust the hostnames and trusted external IPs to fit your setup.
+1. Build the images with Packer
+    1. Within the `gcp/packer` folder, run `packer build --var-file example.vars consul.json` and `packer build --var-file example.vars vault.json`.
+1. Run the Terraform
+    1. Within the `gcp/terraform` folder, run `terraform init ; terraform apply --var-file example.tfvars` and approve the plan once you've reviewed it.
+    1. While Terraform is running, setup the domain configured in `gcp/terraform/example.tfvars` to point at the Load Balancer frontends. This can be done with A records in your DNS zone, or by editing the hosts file:
+        ```
+        <consul_ip> consul.example.com
+        <vault_ip> vault-0.vault.example.com vault-1.vault.example.com vault.example.com
+        ```
+
+### Azure
+
+1. Ensure you have a virtual network setup that has outbound internet access with a Network Security Group named 'default' attached to the relevant subnet.
+    1. Create a new resource group, called 'default'.
+    1. Create a new virtual network, called 'default' with whatever IP space fits your needs.
+    1. Create a new network security group, called 'default' and associate it with the subnet in the virtual network.
+1. Adjust the Packer and Terrafom variables
+    1. Check the `azure/packer/example.vars` file and supply credentials and a region.
+    1. Check the `azure/terraform/example.tfvars` file and adjust the hostnames and trusted external IPs to fit your setup.
+1. Build the images with Packer
+    1. Within the `azure/packer` folder, run `packer build --var-file example.vars consul.json` and `packer build --var-file example.vars vault.json`.
+    1. If you run into issues authenticating with AzureAD, service principal authentication can be used instead, see [the packer docs](https://packer.io/docs/builders/azure-arm.html#service-principal).
+1. Run the Terraform
+    1. Within the `azure/terraform` folder, run `terraform init ; terraform apply --var-file example.tfvars` and approve the plan once you've reviewed it.
+    1. While Terraform is running, setup the domain configured in `azure/terraform/example.tfvars` to point at the Load Balancer public IP. This can be done with an A record in your DNS zone, or by editing the hosts file:
+        ```
+        <public_ip> vault-0.vault.example.com vault-1.vault.example.com vault.example.com consul.example.com
+        ```
+
+### Testing and Usage
+
+1. Prepare a client certificate for use with Consul.
+    1. In the `ansible` folder, run `openssl pkcs12 -export -in consul.crt -inkey consul.key -out consul.p12` and enter a password when prompted.
+    1. Import this certificate into your browser of choice.
+1. Try to access Consul by browsing to https://consul.<your_domain>:8501/ui, select the certificate when prompted.
+1. Find the master token created during bootstrap and supply it to the UI, it should be in a file at `aws/terraform/master-token`.
+1. Try to access the HAProxy stats page for vault by visiting `http://vault.<your_domain>/haproxy-stats` or `http://<stats_ip>/haproxy-stats` if running on GCP.
+1. Initialise Vault and unseal if you wish to experiment further.
+    1. Setup some useful environment variables, first change to the `ansible` directory.
+        ```
+        export VAULT_ADDR=https://vault.<your_domain>
+        export VAULT_CACERT="$(pwd)/vault-ca.crt"
+        ```
+    1. Run `vault operator init`
+    1. Capture the unseal keys and root token from the output.
+    1. Unseal a specific Vault node by running the following `vault operator unseal` and supplying an unseal key when prompted.
+    1. Once enough keys have been entered (3 by default), check the status in HAProxy and look for the server that was just unsealed - it should be green at the bottom.
+
+## Getting started (more in-depth)
 
 ### Terraform
 
@@ -10,6 +103,7 @@ The Terraform config in this repo uses the local filesystem for state storage in
 It is highly recommended to use a remote storage mechanism for Terraform's state.
 
 Additionally, there are no version pins for any of the providers and it's recommended that you set some.
+
 
 ### Network
 
@@ -34,6 +128,7 @@ consul_gossip_encryption_key - The encryption key used to secure Gossip traffic 
 
 ```
 consul_template_user_password_hash - The password hash to set for the consul-template system user
+
 vault_lb_hostname - The external hostname used to access the load-balanced Vault endpoint.
 ```
 
@@ -41,7 +136,6 @@ vault_lb_hostname - The external hostname used to access the load-balanced Vault
 
 ```
 vault_user_password_hash - The password hash to set for the Vault system user
-
 ```
 
 ### Variables (terraform)
@@ -68,10 +162,12 @@ _NOTE_: If you choose to use ansible variables instead of files, the ACL bootstr
 The relevant ansible variables are as follows:
 ```
 consul_agent_acl_token - The token for the Consul agent to use, expects a corresponding file in `ansible/roles/consul/files/tokens/agent`
-consul_default_acl_token - The default token used by the Consul agent, expects a corresponding file in `ansible/roles/consul/files/tokens/agent`
-consul_template_consul_token - The token used by consul-template to obtain node data about vault, expects a corresponding file in `ansible/roles/consul/files/tokens/haproxy`
-vault_consul_acl_token - The token used by Vault to access Consul's KV store, expects a corresponding file in `ansible/roles/consul/files/tokens/vault`
 
+consul_default_acl_token - The default token used by the Consul agent, expects a corresponding file in `ansible/roles/consul/files/tokens/agent`
+
+consul_template_consul_token - The token used by consul-template to obtain node data about vault, expects a corresponding file in `ansible/roles/consul/files/tokens/haproxy`
+
+vault_consul_acl_token - The token used by Vault to access Consul's KV store, expects a corresponding file in `ansible/roles/consul/files/tokens/vault`
 ```
 
 ### Certificates
