@@ -1,0 +1,49 @@
+{
+    "variables": {
+        "subscription_id": null,
+        "location": null,
+        "resource_group": null
+    },
+    "builders": [
+        {
+            "name":                              "consul",
+            "type":                              "azure-arm",
+            "location":                          "{{user `location`}}",
+            "subscription_id":                   "{{user `subscription_id`}}",
+            "image_publisher":                   "Canonical",
+            "image_offer":                       "UbuntuServer",
+            "image_sku":                         "18.04-LTS",
+            "os_type":                           "Linux",
+            "vm_size":                           "Standard_D2_v3",
+            "managed_image_name":                "consul-{{isotime | clean_resource_name}}",
+            "managed_image_resource_group_name": "{{user `resource_group`}}"
+        }
+    ],
+    "provisioners": [
+        {
+            "type":   "shell",
+            "inline": [
+                "timeout 60s bash -c \"while ! [ -f /var/lib/cloud/instance/boot-finished ]; do echo 'Waiting on cloud-init...'; sleep 2; done\"",
+                "sudo apt-get update",
+                "sudo apt-get upgrade -y || true"
+            ]
+        },
+        {
+            "type":                "ansible",
+            "playbook_file":       "{{ template_dir }}/../../ansible/consul.yml",
+            "extra_arguments":     "--vault-password-file={{ template_dir }}/../../ansible/vault-password",
+            "groups":              ["consul", "azure"],
+            "host_alias":          "{{ replace_all \"-\" \"\" uuid }}",
+            "inventory_directory": "{{ template_dir }}/../../ansible",
+            "user":                "packer"
+        },
+        {
+            "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'",
+            "inline": [
+                "/usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync"
+            ],
+            "inline_shebang": "/bin/sh -x",
+            "type": "shell"
+        }
+    ]
+}
