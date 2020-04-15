@@ -183,7 +183,6 @@ credentials - The path on disk of a credentials file for Terraform to use.
 project - The ID of the project to provision resources in.
 
 region - The region in which to provision resources.
-
 ```
 
 ### Tokens
