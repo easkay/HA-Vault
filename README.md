@@ -131,10 +131,12 @@ Additionally, there are no version pins for any of the providers and it's recomm
 
 It's assumed that a network and subnet are available in which to setup the cluster, please adjust the automation accordingly.
 
+
 ### Variables (ansible)
 
 Most variables are already setup with sensible values, but secrets or sensitive variables should be set per installation along with any other installation-specific variables.
-Secret values consumed by ansible are protected using ansible-vault, and the vault password is intended to be kept in the root of the ansible repo for use by packer.
+The `example.yml` group variables are not stored securely for the purposes of enabling easy experimentation with this setup.
+Of course for a proper deployment, these secrets should be appropriately protected using something such as ansible-vault or by not committing them at all.
 
 _NOTE_: Special remarks about Consul tokens are made further on, though they can be configured through variables.
 
@@ -173,12 +175,23 @@ trusted_external_ips - The external IPs to whitelist when configuring external a
 consul_retry_join_config - This should not require adjustment unless the cloud auto-join tag or value is changed.
 ```
 
+Some variables are provider-specific, such as GCP:
+
+```
+credentials - The path on disk of a credentials file for Terraform to use.
+
+project - The ID of the project to provision resources in.
+
+region - The region in which to provision resources.
+
+```
+
 ### Tokens
 
-Consul tokens are required for the consul agent, for consul-template, and for Vault.
+Consul tokens are required for the Consul agent, for consul-template, and for Vault.
 The `SecretID` values for each token are set in advance so that the machines can boot and automatically be able to perform their function without extra setup.
-These are configured through variables in Ansible, which by default look for the tokens on the filesystem.
-You should populate these tokens with your own values, which must be UUIDs, and can be supplied through files or by setting the ansible variables.
+These are configured through variables in Ansible, which by default look for the tokens on the filesystem using the `lookup` plugin.
+You should populate these tokens with your own values, which must be UUIDs, and can be supplied through files or by setting the ansible variables explicitly.
 _NOTE_: If you choose to use ansible variables instead of files, the ACL bootstrap process in Terraform will need to be adjusted to remove the creation of Consul tokens.
 
 The relevant ansible variables are as follows:
@@ -215,7 +228,8 @@ Ansible and Terraform expect the following files to be available at the root of 
 Hostnames are only needed in a few places, and should be adjusted before provisioning.
 See
 * `haproxy-consul-template` ansible role, defaults
-* `vault_hostname` local in Terraform
+* `vault_hostname` variable in Terraform
+* `consul_hostname` variable in Terraform
 * `CERTIFICATE_DOMAIN` variable in `tls-bootstrap/bootstrap.sh`
 
 The automation does _NOT_ create any DNS records, but does expect them to exist and therefore you should add the necessary automation to Terraform or arrange some other means of ensuring that the expected hostname resolves to an address on the load-balancer.
@@ -223,7 +237,7 @@ The automation does _NOT_ create any DNS records, but does expect them to exist 
 ### Backups
 
 There is no provision made to enable backups as the situation of each user is likely to be different.
-Since Consul is the backing store for Vault, an automated process that takes a snapshot of Consul and saves ot somewhere would probably be useful.
+Since Consul is the backing store for Vault, an automated process that takes a snapshot of Consul and saves it somewhere would probably be useful.
 
 ## Design
 
@@ -278,7 +292,7 @@ The ACL system is bootstrapped using the bootstrap process and currently is achi
 The master token is captured and output to the filesystem for the operator to do with as they please.
 Some essential policies and tokens are also created at this point to enable Vault and consul-template to function.
 The bootstrap process will retry indefinitely until it succeeds, which can lead to an infinite provisioning loop if the bootstrap operation is successful but subsequent operations fail.
-In this situation, the bootstrap process should be reset.
+In this situation, the bootstrap process should be reset, or the relevant lines should be commented allowing Terraform to re-run.
 
 Having Consul tokens within machine images has been avoided as much as possible, however a certain amount of it is necessary.
 For the purposes of configuring the Consul agent with the necessary permissions to do node updates, a file is placed in `/etc/consul.d` for use in the agent bootstrap process.
@@ -330,7 +344,7 @@ If you wanted to pull certificates in on startup, it would be reasonably trivial
 ### ACL tokens
 
 In this setup, Consul tokens are created with known secret values already provisioned within components such as consul-template and Vault.
-The tokens are stored into the machine image and removed if possible after startup.
+The tokens are stored in the machine image and removed if possible after startup (Consul only).
 
 It would be possible to instead store these tokens within Vault or even a cloud provider's secrets storage facility and have the nodes retrieve them on startup.
 This hasn't been done for similar reasons to those discussed in the previous section - to avoid introducing unnecessary dependencies, to limit the reach of trust, and also to avoid complexity in the setup.
