@@ -1,8 +1,8 @@
 ---
 
 - name: Copy agent bootstrap script
-  copy:
-    src: agent-bootstrap.sh
+  template:
+    src: agent-bootstrap.sh.j2
     dest: /etc/consul.d/agent-bootstrap.sh
     mode: 0744
     owner: root
