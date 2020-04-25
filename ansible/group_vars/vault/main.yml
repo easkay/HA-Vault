@@ -6,6 +6,9 @@ consul_key_file: consul-agents.key
 vault_consulauth_ca_crt_file: consul-ca.crt
 vault_consulauth_crt_file: consul-agents.crt
 vault_consulauth_key_file: consul-agents.key
+consul_template_consulauth_ca_crt_file: consul-ca.crt
+consul_template_consulauth_crt_file: consul-agents.crt
+consul_template_consulauth_key_file: consul-agents.key
 vault_consul_acl_token: "{{ lookup('file', 'roles/consul/files/tokens/vault') }}"
 consul_template_consul_token: "{{ lookup('file', 'roles/consul/files/tokens/haproxy') }}"
 ...
