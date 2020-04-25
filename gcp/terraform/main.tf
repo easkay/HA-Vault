@@ -230,8 +230,8 @@ resource null_resource consul_acl_bootstrap {
     interpreter = ["/bin/bash", "-c"]
     environment = {
       CONSUL_CACERT          = abspath("${path.module}/../../ansible/consul-ca.crt")
-      CONSUL_CLIENT_CERT     = abspath("${path.module}/../../ansible/consul.crt")
-      CONSUL_CLIENT_KEY      = abspath("${path.module}/../../ansible/consul.key")
+      CONSUL_CLIENT_CERT     = abspath("${path.module}/../../ansible/consul-agents.crt")
+      CONSUL_CLIENT_KEY      = abspath("${path.module}/../../ansible/consul-agents.key")
       CONSUL_HTTP_ADDR       = "https://${var.consul_hostname}:8501"
       CONSUL_TLS_SERVER_NAME = "consul"
     }

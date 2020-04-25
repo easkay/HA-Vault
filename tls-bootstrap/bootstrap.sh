@@ -27,7 +27,7 @@ generate_certificate_for() {
   if [[ ! -z "$2" ]]; then
     SECRET_BACKEND_PATH="${2}-https-root"
   fi
-  CERT_JSON=$(vault write "${SECRET_BACKEND_PATH}/issue/${VAULT_PKI_ROLE_NAME}" common_name="$CERTIFICATE_DOMAIN" alt_names="" ip_sans="127.0.0.1" ttl=875999h)
+  CERT_JSON=$(vault write "${SECRET_BACKEND_PATH}/issue/${VAULT_PKI_ROLE_NAME}" common_name="$CERTIFICATE_DOMAIN" alt_names="${ALT_NAMES}" ip_sans="127.0.0.1" ttl=875999h)
   echo "$CERT_JSON" | jq -r '.data.certificate' > "${TARGET_SYSTEM}.crt"
   echo "$CERT_JSON" | jq -r '.data.private_key' > "${TARGET_SYSTEM}.key"
 }
