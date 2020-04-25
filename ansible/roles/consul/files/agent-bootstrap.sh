@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CONSUL_OPTIONS="-ca-file=/etc/consul.d/consul-ca.crt -client-cert=/etc/consul.d/consul.crt -client-key=/etc/consul.d/consul.key -http-addr=https://127.0.0.1:8501 -tls-server-name=consul"
+CONSUL_OPTIONS="-ca-file=/etc/consul.d/consul-ca.crt -client-cert=/etc/consul.d/consul.crt -client-key=/etc/consul.d/consul.key -http-addr=https://127.0.0.1:8501"
 
 systemctl stop consul
 echo > /var/log/consul/consul.log
