@@ -1,0 +1,3 @@
+consul_crt_file: consul-servers.crt
+consul_ca_crt_file: consul-ca.crt
+consul_key_file: consul-servers.key
