@@ -1,6 +1,7 @@
 variable vault_hostname {}
 variable consul_hostname {}
 variable trusted_external_ips { type = list(string) }
+variable vault_instance_image_filters { type = list(string) }
 
 provider aws {
   region = "eu-west-2"
@@ -31,6 +32,7 @@ data aws_ami consul {
 }
 
 data aws_ami vault {
+  count       = 2
   owners      = ["self"]
   most_recent = true
 
@@ -41,7 +43,7 @@ data aws_ami vault {
 
   filter {
     name   = "name"
-    values = ["vault-*"]
+    values = [var.vault_instance_image_filters[count.index]]
   }
 }
 
@@ -183,7 +185,7 @@ resource aws_autoscaling_group consul {
 
 resource aws_instance vault {
   count                       = 2
-  ami                         = data.aws_ami.vault.image_id
+  ami                         = data.aws_ami.vault[count.index].image_id
   instance_type               = "t2.small"
   iam_instance_profile        = aws_iam_instance_profile.describe-instances.name
   vpc_security_group_ids      = [aws_security_group.consul.id, aws_security_group.vault.id, aws_security_group.haproxy.id]

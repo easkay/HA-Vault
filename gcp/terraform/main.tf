@@ -4,6 +4,7 @@ variable trusted_external_ips { type = list(string) }
 variable credentials {}
 variable project {}
 variable region {}
+variable vault_instance_image_filters { type = list(string) }
 
 provider google {
   credentials = var.credentials
@@ -32,7 +33,9 @@ data google_compute_image consul {
 }
 
 data google_compute_image vault {
+  count  = 2
   family = "vault"
+  # name = var.vault_instance_image_filters[count.index]
 }
 
 resource google_project_iam_custom_role get_compute_instances {
@@ -174,7 +177,7 @@ EOF
 
   boot_disk {
     initialize_params {
-      image = data.google_compute_image.vault.self_link
+      image = data.google_compute_image.vault[count.index].self_link
     }
   }
 

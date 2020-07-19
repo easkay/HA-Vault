@@ -1,6 +1,7 @@
 variable vault_hostname {}
 variable consul_hostname {}
 variable trusted_external_ips { type = list(string) }
+variable vault_instance_image_filters { type = list(string) }
 
 provider azurerm {
   features {}
@@ -43,7 +44,8 @@ data azurerm_image consul {
 }
 
 data azurerm_image vault {
-  name_regex          = "vault-"
+  count               = 2
+  name_regex          = var.vault_instance_image_filters[count.index]
   sort_descending     = true
   resource_group_name = data.azurerm_resource_group.default.name
 }
@@ -154,7 +156,7 @@ resource azurerm_linux_virtual_machine vault {
   location              = data.azurerm_resource_group.default.location
   admin_username        = "ubuntu"
   network_interface_ids = [azurerm_network_interface.vault.*.id[count.index]]
-  source_image_id       = data.azurerm_image.vault.id
+  source_image_id       = data.azurerm_image.vault[count.index].id
   size                  = "Standard_B2s"
   zone                  = count.index + 1
 
