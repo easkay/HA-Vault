@@ -362,3 +362,4 @@ The CLI-based approach allows for plenty of retries and a more robust experience
 
 Again, you could bootstrap the cluster and then go on to manage the ACL policies and tokens within Terraform, including importing the master and default tokens and this has been left as an exercise for the operator.
 It would also be possible to use Vault to create and distribute tokens for use with Consul, and much like the previous sections, this has been left out so as to not introduce complexity.
+
