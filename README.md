@@ -92,7 +92,8 @@ It's recommended to have a console for your chosen provider open and available, 
     1. `cd` into the `azure/terraform` folder, run `terraform init ; terraform apply --var-file example.tfvars` and if the plan looks good, approve it.
     1. **While Terraform is running**, setup the domain configured in `azure/terraform/example.tfvars` to point at the Load Balancer public IP. This can be done with an A record in your DNS zone, or by editing the hosts file:
         ```
-        <public_ip> vault-0.vault.example.com vault-1.vault.example.com vault.example.com consul.example.com
+        <consul_public_ip> consul.example.com
+        <vault_public_ip> vault-0.vault.example.com vault-1.vault.example.com vault.example.com
         ```
     1. You may receive an error relating to HealthProbes when creating the scale set for Consul, in this case, re-attempt the running of Terraform.
     1. If you receive an error similar to `Failed to create new policy: Unexpected response code: 500 (<specific error message>)`, the situation can be recovered by locating the `null_resource consul_acl_bootstrap` resource and commenting all lines of the `command` _except_ those which start with `consul acl policy` or `consul acl token`. Terraform should then be re-run.

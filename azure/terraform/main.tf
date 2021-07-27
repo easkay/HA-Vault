@@ -244,9 +244,22 @@ resource azurerm_lb vault {
   sku                 = "Standard"
 
   frontend_ip_configuration {
+    name                 = "consul"
+    public_ip_address_id = azurerm_public_ip.consul.id
+  }
+
+  frontend_ip_configuration {
     name                 = "vault"
     public_ip_address_id = azurerm_public_ip.vault.id
   }
+}
+
+resource azurerm_public_ip consul {
+  name                = "consul"
+  resource_group_name = data.azurerm_resource_group.default.name
+  location            = data.azurerm_resource_group.default.location
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource azurerm_public_ip vault {
@@ -273,12 +286,13 @@ resource azurerm_lb_rule consul {
   name                           = "consul"
   resource_group_name            = data.azurerm_resource_group.default.name
   loadbalancer_id                = azurerm_lb.vault.id
-  frontend_ip_configuration_name = "vault"
+  frontend_ip_configuration_name = "consul"
   protocol                       = "Tcp"
   frontend_port                  = "8501"
   backend_port                   = "8501"
   backend_address_pool_id        = azurerm_lb_backend_address_pool.consul.id
   probe_id                       = azurerm_lb_probe.consul.id
+  disable_outbound_snat          = true
 }
 
 resource azurerm_lb_rule haproxy_stats {
@@ -327,6 +341,30 @@ resource azurerm_lb_probe vault {
   loadbalancer_id     = azurerm_lb.vault.id
   protocol            = "Tcp"
   port                = "443"
+}
+
+resource azurerm_lb_outbound_rule consul {
+  name                    = "consul"
+  resource_group_name     = data.azurerm_resource_group.default.name
+  loadbalancer_id         = azurerm_lb.vault.id
+  backend_address_pool_id = azurerm_lb_backend_address_pool.consul.id
+  protocol                = "All"
+
+  frontend_ip_configuration {
+    name = "consul"
+  }
+}
+
+resource azurerm_lb_outbound_rule vault {
+  name                    = "vault"
+  resource_group_name     = data.azurerm_resource_group.default.name
+  loadbalancer_id         = azurerm_lb.vault.id
+  backend_address_pool_id = azurerm_lb_backend_address_pool.vault.id
+  protocol                = "All"
+
+  frontend_ip_configuration {
+    name = "vault"
+  }
 }
 
 resource azurerm_network_security_rule consul_lb_https {
