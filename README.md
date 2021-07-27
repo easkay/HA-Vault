@@ -90,7 +90,7 @@ It's recommended to have a console for your chosen provider open and available, 
     1. If you run into issues authenticating with AzureAD, service principal authentication can be used instead. See [the packer docs](https://packer.io/docs/builders/azure-arm.html#service-principal).
 1. Run the Terraform.
     1. `cd` into the `azure/terraform` folder, run `terraform init ; terraform apply --var-file example.tfvars` and if the plan looks good, approve it.
-    1. **While Terraform is running**, setup the domain configured in `azure/terraform/example.tfvars` to point at the Load Balancer public IP. This can be done with an A record in your DNS zone, or by editing the hosts file:
+    1. **While Terraform is running**, setup the domains configured in `azure/terraform/example.tfvars` to point at the Load Balancer public IPs. This can be done with A records in your DNS zone, or by editing the hosts file:
         ```
         <consul_public_ip> consul.example.com
         <vault_public_ip> vault-0.vault.example.com vault-1.vault.example.com vault.example.com

@@ -305,6 +305,7 @@ resource azurerm_lb_rule haproxy_stats {
   backend_port                   = "80"
   backend_address_pool_id        = azurerm_lb_backend_address_pool.vault.id
   probe_id                       = azurerm_lb_probe.haproxy_stats.id
+  disable_outbound_snat          = true
 }
 
 resource azurerm_lb_rule vault {
@@ -317,6 +318,7 @@ resource azurerm_lb_rule vault {
   backend_port                   = "443"
   backend_address_pool_id        = azurerm_lb_backend_address_pool.vault.id
   probe_id                       = azurerm_lb_probe.vault.id
+  disable_outbound_snat          = true
 }
 
 resource azurerm_lb_probe consul {
