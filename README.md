@@ -6,7 +6,8 @@ _NOTE_: This setup does not ship ready out-of-the-box, there are some tweaks the
 
 This repo assumes you're running on Linux or macOS.
 
-Ensure you have Terraform 0.12, Packer 1.5, Vault 1.4, and ansible 2.8 (min) installed.
+Ensure you have the following installed Terraform 0.13 (min), Packer 1.5 (min), Vault 1.4 (min), and ansible 2.8 (min).
+The configs should work with newer versions as well.
 This repo assumes some prior knowledge and experience with Vault, Terraform, Packer, and at least one of the cloud providers mentioned.
 
 ### Common setup
