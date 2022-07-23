@@ -128,7 +128,9 @@ It is highly recommended to use a remote storage mechanism for Terraform's state
 
 Additionally, there are no version pins for any of the providers and it's recommended that you set some.
 
-### Network
+
+
+### Network
 
 It's assumed that a network and subnet are available in which to setup the cluster, please adjust the automation accordingly.
 
