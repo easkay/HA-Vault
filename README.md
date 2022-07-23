@@ -127,7 +127,6 @@ It is highly recommended to use a remote storage mechanism for Terraform's state
 
 Additionally, there are no version pins for any of the providers and it's recommended that you set some.
 
-
 ### Network
 
 It's assumed that a network and subnet are available in which to setup the cluster, please adjust the automation accordingly.
@@ -171,7 +170,7 @@ vault_hostname - The hostname which will be used to access Vault's load-balanced
 
 consul_hostname - The hostname which will be used to access Consul's load-balanced endpoint.
 
-trusted_external_ips - The external IPs to whitelist when configuring external access to Vault and Consul.
+trusted_external_ips - The external IPs to permit when configuring external access to Vault and Consul.
 
 consul_retry_join_config - This should not require adjustment unless the cloud auto-join tag or value is changed.
 ```
@@ -243,7 +242,7 @@ Since Consul is the backing store for Vault, an automated process that takes a s
 
 ### External access
 
-All external access is IP whitelisted within security groups configured through Terraform.
+All external access is IP controlled within security groups configured through Terraform.
 HTTPS communication to Consul is exposed via a load-balancer on port 8501 and traffic is sent to the autoscaling group.
 HTTPS communication to Vault is exposed via a load-balancer on port 443 and traffic is sent to HAProxy on the Vault nodes.
 Depending on the hostname supplied, traffic is routed either to any available Vault node or directly to a specific node.
