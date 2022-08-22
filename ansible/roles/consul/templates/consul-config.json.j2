@@ -8,9 +8,6 @@
   "bootstrap_expect": 3,
   "client_addr": "0.0.0.0",
 {% endif %}
-  "ca_file": "/etc/ssl/certs/ca-certificates.crt",
-  "cert_file": "{{ consul_config_dir }}/{{ consul_crt_file|basename }}",
-  "key_file": "{{ consul_config_dir }}/{{ consul_key_file|basename }}",
   "data_dir": "{{ consul_data_dir }}",
   "datacenter": "{{ consul_datacenter }}",
   "primary_datacenter": "{{ consul_datacenter }}",
@@ -27,8 +24,19 @@
   },
   "rejoin_after_leave": true,
   "server": {{ (not consul_agent_only)|lower }},
-  "ui": true,
-  "verify_incoming": true,
-  "verify_outgoing": true,
-  "verify_server_hostname": true
+  "tls": {
+    "defaults": {
+      "ca_file": "/etc/ssl/certs/ca-certificates.crt",
+      "cert_file": "{{ consul_config_dir }}/{{ consul_crt_file|basename }}",
+      "key_file": "{{ consul_config_dir }}/{{ consul_key_file|basename }}",
+      "verify_incoming": true,
+      "verify_outgoing": true
+    },
+    "internal_rpc": {
+      "verify_server_hostname": true
+    }
+  },
+  "ui_config": {
+    "enabled": true
+  }
 }
