@@ -10,7 +10,7 @@
             "access_key":    "{{user `aws_access_key`}}",
             "secret_key":    "{{user `aws_secret_key`}}",
             "region":        "{{user `region`}}",
-            "source_ami":    "ami-077a5b1762a2dde35",
+            "source_ami":    "ami-0fb391cce7a602d1f",
             "instance_type": "t2.medium",
             "ami_name":      "vault-{{isotime | clean_resource_name}}",
             "ssh_username":  "ubuntu",
