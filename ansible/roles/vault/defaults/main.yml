@@ -1,5 +1,5 @@
 ---
-vault_version: 1.7.3
+vault_version: 1.11.2
 vault_verify_binary_checksum: true
 vault_download_filename: "vault_{{ vault_version }}_linux_amd64.zip"
 vault_overwrite_binary: false
