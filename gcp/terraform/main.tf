@@ -34,8 +34,7 @@ data google_compute_image consul {
 
 data google_compute_image vault {
   count  = 2
-  family = "vault"
-  # name = var.vault_instance_image_filters[count.index]
+  name   = var.vault_instance_image_filters[count.index]
 }
 
 resource google_project_iam_custom_role get_compute_instances {
@@ -55,6 +54,7 @@ resource google_project_iam_custom_role get_compute_instances {
 }
 
 resource google_project_iam_binding consul_get_compute_instances {
+  project = data.google_client_config.current.project
   members = ["serviceAccount:${google_service_account.consul.email}"]
   role    = "projects/${data.google_client_config.current.project}/roles/${google_project_iam_custom_role.get_compute_instances.role_id}"
 }
@@ -236,11 +236,9 @@ resource null_resource consul_acl_bootstrap {
       CONSUL_CLIENT_CERT     = abspath("${path.module}/../../ansible/consul-agents.crt")
       CONSUL_CLIENT_KEY      = abspath("${path.module}/../../ansible/consul-agents.key")
       CONSUL_HTTP_ADDR       = "https://${var.consul_hostname}:8501"
-      CONSUL_TLS_SERVER_NAME = "consul"
     }
 
     command = <<EOF
-sleep 120
 success="1"
 consul_bootstrap_output=""
 while [[ "$success" -gt "0" ]]; do
@@ -401,10 +399,11 @@ resource google_compute_firewall vault_cluster_internal {
 }
 
 resource google_compute_firewall consul_deny_all {
-  name        = "consul-deny-all"
-  network     = data.google_compute_network.default.self_link
-  priority    = 900
-  target_tags = ["consul"]
+  name          = "consul-deny-all"
+  network       = data.google_compute_network.default.self_link
+  priority      = 900
+  source_ranges = ["0.0.0.0/0"]
+  target_tags   = ["consul"]
 
   deny {
     protocol = "tcp"
@@ -420,10 +419,11 @@ resource google_compute_firewall consul_deny_all {
 }
 
 resource google_compute_firewall vault_deny_all {
-  name        = "vault-deny-all"
-  network     = data.google_compute_network.default.self_link
-  priority    = 910
-  target_tags = ["vault"]
+  name          = "vault-deny-all"
+  network       = data.google_compute_network.default.self_link
+  priority      = 910
+  source_ranges = ["0.0.0.0/0"]
+  target_tags   = ["vault"]
 
   deny {
     protocol = "tcp"
@@ -439,10 +439,11 @@ resource google_compute_firewall vault_deny_all {
 }
 
 resource google_compute_firewall haproxy_deny_all {
-  name        = "haproxy-deny-all"
-  network     = data.google_compute_network.default.self_link
-  priority    = 920
-  target_tags = ["haproxy"]
+  name          = "haproxy-deny-all"
+  network       = data.google_compute_network.default.self_link
+  priority      = 920
+  source_ranges = ["0.0.0.0/0"]
+  target_tags   = ["haproxy"]
 
   deny {
     protocol = "tcp"

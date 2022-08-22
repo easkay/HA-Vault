@@ -72,7 +72,7 @@ resource azurerm_user_assigned_identity consul {
 
 resource azurerm_role_assignment consul_compute_reader {
   scope              = data.azurerm_resource_group.default.id
-  role_definition_id = azurerm_role_definition.compute_reader.id
+  role_definition_id = azurerm_role_definition.compute_reader.role_definition_resource_id
   principal_id       = azurerm_user_assigned_identity.consul.principal_id
 }
 
@@ -272,58 +272,52 @@ resource azurerm_public_ip vault {
 
 resource azurerm_lb_backend_address_pool consul {
   name                = "consul"
-  resource_group_name = data.azurerm_resource_group.default.name
   loadbalancer_id     = azurerm_lb.vault.id
 }
 
 resource azurerm_lb_backend_address_pool vault {
   name                = "vault"
-  resource_group_name = data.azurerm_resource_group.default.name
   loadbalancer_id     = azurerm_lb.vault.id
 }
 
 resource azurerm_lb_rule consul {
   name                           = "consul"
-  resource_group_name            = data.azurerm_resource_group.default.name
   loadbalancer_id                = azurerm_lb.vault.id
   frontend_ip_configuration_name = "consul"
   protocol                       = "Tcp"
   frontend_port                  = "8501"
   backend_port                   = "8501"
-  backend_address_pool_id        = azurerm_lb_backend_address_pool.consul.id
+  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.consul.id]
   probe_id                       = azurerm_lb_probe.consul.id
   disable_outbound_snat          = true
 }
 
 resource azurerm_lb_rule haproxy_stats {
   name                           = "haproxy-stats"
-  resource_group_name            = data.azurerm_resource_group.default.name
   loadbalancer_id                = azurerm_lb.vault.id
   frontend_ip_configuration_name = "vault"
   protocol                       = "Tcp"
   frontend_port                  = "80"
   backend_port                   = "80"
-  backend_address_pool_id        = azurerm_lb_backend_address_pool.vault.id
+  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.vault.id]
   probe_id                       = azurerm_lb_probe.haproxy_stats.id
   disable_outbound_snat          = true
 }
 
 resource azurerm_lb_rule vault {
   name                           = "vault"
-  resource_group_name            = data.azurerm_resource_group.default.name
   loadbalancer_id                = azurerm_lb.vault.id
   frontend_ip_configuration_name = "vault"
   protocol                       = "Tcp"
   frontend_port                  = "443"
   backend_port                   = "443"
-  backend_address_pool_id        = azurerm_lb_backend_address_pool.vault.id
+  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.vault.id]
   probe_id                       = azurerm_lb_probe.vault.id
   disable_outbound_snat          = true
 }
 
 resource azurerm_lb_probe consul {
   name                = "consul"
-  resource_group_name = data.azurerm_resource_group.default.name
   loadbalancer_id     = azurerm_lb.vault.id
   protocol            = "Tcp"
   port                = "8501"
@@ -331,7 +325,6 @@ resource azurerm_lb_probe consul {
 
 resource azurerm_lb_probe haproxy_stats {
   name                = "haproxy-stats"
-  resource_group_name = data.azurerm_resource_group.default.name
   loadbalancer_id     = azurerm_lb.vault.id
   protocol            = "Tcp"
   port                = "80"
@@ -339,7 +332,6 @@ resource azurerm_lb_probe haproxy_stats {
 
 resource azurerm_lb_probe vault {
   name                = "vault"
-  resource_group_name = data.azurerm_resource_group.default.name
   loadbalancer_id     = azurerm_lb.vault.id
   protocol            = "Tcp"
   port                = "443"
@@ -347,7 +339,6 @@ resource azurerm_lb_probe vault {
 
 resource azurerm_lb_outbound_rule consul {
   name                    = "consul"
-  resource_group_name     = data.azurerm_resource_group.default.name
   loadbalancer_id         = azurerm_lb.vault.id
   backend_address_pool_id = azurerm_lb_backend_address_pool.consul.id
   protocol                = "All"
@@ -359,7 +350,6 @@ resource azurerm_lb_outbound_rule consul {
 
 resource azurerm_lb_outbound_rule vault {
   name                    = "vault"
-  resource_group_name     = data.azurerm_resource_group.default.name
   loadbalancer_id         = azurerm_lb.vault.id
   backend_address_pool_id = azurerm_lb_backend_address_pool.vault.id
   protocol                = "All"

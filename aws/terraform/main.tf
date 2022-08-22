@@ -155,13 +155,16 @@ EOF
   }
 }
 
-data aws_subnet_ids default {
-  vpc_id = data.aws_vpc.default.id
+data aws_subnets default {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
+  }
 }
 
 data aws_subnet default {
-  count = length(data.aws_subnet_ids.default.ids)
-  id    = tolist(data.aws_subnet_ids.default.ids)[count.index]
+  count = length(data.aws_subnets.default.ids)
+  id    = sort(tolist(data.aws_subnets.default.ids))[count.index]
 }
 
 resource aws_autoscaling_group consul {
@@ -171,7 +174,7 @@ resource aws_autoscaling_group consul {
   desired_capacity          = 3
   default_cooldown          = 120
   launch_configuration      = aws_launch_configuration.consul.name
-  vpc_zone_identifier       = data.aws_subnet_ids.default.ids
+  vpc_zone_identifier       = data.aws_subnets.default.ids
   target_group_arns         = [aws_lb_target_group.consul.arn]
   termination_policies      = ["OldestLaunchConfiguration", "OldestInstance"]
   wait_for_capacity_timeout = 0
@@ -192,7 +195,7 @@ resource aws_instance vault {
   associate_public_ip_address = true
   ebs_optimized               = false
   key_name                    = "id_rsa"
-  subnet_id                   = element(tolist(data.aws_subnet_ids.default.ids), count.index)
+  subnet_id                   = element(tolist(data.aws_subnets.default.ids), count.index)
 
   user_data = <<EOF
 #!/bin/bash
@@ -241,7 +244,7 @@ resource aws_lb vault {
   name                             = "vault"
   internal                         = false
   load_balancer_type               = "network"
-  subnets                          = data.aws_subnet_ids.default.ids
+  subnets                          = data.aws_subnets.default.ids
   enable_deletion_protection       = false
   enable_cross_zone_load_balancing = true
 }
@@ -290,7 +293,7 @@ resource aws_lb_target_group vault_stats {
 
   stickiness {
     enabled = false
-    type    = "lb_cookie"
+    type    = "source_ip"
   }
 
   health_check {
@@ -335,7 +338,7 @@ resource aws_lb_target_group consul {
 
   stickiness {
     enabled = false
-    type    = "lb_cookie"
+    type    = "source_ip"
   }
 
   health_check {
