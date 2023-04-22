@@ -21,4 +21,11 @@
     direction: in
     to_port: "8300"
 
+- name: Allow gRPC through firewall
+  ufw:
+    proto: tcp
+    rule: allow
+    direction: in
+    to_port: "8503"
+
 ...

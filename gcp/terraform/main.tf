@@ -333,10 +333,23 @@ resource google_compute_firewall consul_https_internal {
   }
 }
 
+resource google_compute_firewall consul_grpc_internal {
+  name        = "consul-grpc-internal"
+  network     = data.google_compute_network.default.self_link
+  priority    = 850
+  source_tags = ["consul"]
+  target_tags = ["consul"]
+
+  allow {
+    ports    = ["8503"]
+    protocol = "tcp"
+  }
+}
+
 resource google_compute_firewall consul_https_vault {
   name        = "consul-https-vault"
   network     = data.google_compute_network.default.self_link
-  priority    = 850
+  priority    = 860
   source_tags = ["vault"]
   target_tags = ["consul"]
 
@@ -349,7 +362,7 @@ resource google_compute_firewall consul_https_vault {
 resource google_compute_firewall consul_https_haproxy {
   name        = "consul-https-haproxy"
   network     = data.google_compute_network.default.self_link
-  priority    = 860
+  priority    = 870
   source_tags = ["haproxy"]
   target_tags = ["consul"]
 
@@ -362,7 +375,7 @@ resource google_compute_firewall consul_https_haproxy {
 resource google_compute_firewall vault_https_internal {
   name        = "vault-https-internal"
   network     = data.google_compute_network.default.self_link
-  priority    = 870
+  priority    = 880
   source_tags = ["vault"]
   target_tags = ["vault"]
 
@@ -375,7 +388,7 @@ resource google_compute_firewall vault_https_internal {
 resource google_compute_firewall vault_https_haproxy {
   name        = "vault-https-haproxy"
   network     = data.google_compute_network.default.self_link
-  priority    = 880
+  priority    = 890
   source_tags = ["haproxy"]
   target_tags = ["vault"]
 
@@ -388,7 +401,7 @@ resource google_compute_firewall vault_https_haproxy {
 resource google_compute_firewall vault_cluster_internal {
   name        = "vault-cluster-internal"
   network     = data.google_compute_network.default.self_link
-  priority    = 890
+  priority    = 900
   source_tags = ["vault"]
   target_tags = ["vault"]
 
@@ -401,7 +414,7 @@ resource google_compute_firewall vault_cluster_internal {
 resource google_compute_firewall consul_deny_all {
   name          = "consul-deny-all"
   network       = data.google_compute_network.default.self_link
-  priority      = 900
+  priority      = 910
   source_ranges = ["0.0.0.0/0"]
   target_tags   = ["consul"]
 
@@ -421,7 +434,7 @@ resource google_compute_firewall consul_deny_all {
 resource google_compute_firewall vault_deny_all {
   name          = "vault-deny-all"
   network       = data.google_compute_network.default.self_link
-  priority      = 910
+  priority      = 920
   source_ranges = ["0.0.0.0/0"]
   target_tags   = ["vault"]
 
@@ -441,7 +454,7 @@ resource google_compute_firewall vault_deny_all {
 resource google_compute_firewall haproxy_deny_all {
   name          = "haproxy-deny-all"
   network       = data.google_compute_network.default.self_link
-  priority      = 920
+  priority      = 930
   source_ranges = ["0.0.0.0/0"]
   target_tags   = ["haproxy"]
 

@@ -408,6 +408,14 @@ resource aws_security_group consul {
   }
 
   ingress {
+    description     = "Consul gRPC (Vault)"
+    from_port       = 8503
+    to_port         = 8503
+    protocol        = "tcp"
+    security_groups = [aws_security_group.vault.id]
+  }
+
+  ingress {
     description     = "Consul HTTPS (HAProxy)"
     from_port       = 8501
     to_port         = 8501

@@ -6,6 +6,9 @@
   },
 {% if not consul_agent_only %}
   "bootstrap_expect": 3,
+  "connect": {
+    "enabled": false
+  },
   "client_addr": "0.0.0.0",
 {% endif %}
   "data_dir": "{{ consul_data_dir }}",
@@ -17,10 +20,15 @@
   "encrypt_verify_outgoing": true,
   "leave_on_terminate": true,
   "log_json": true,
+  "peering": {
+    "enabled": false
+  },
   "ports": {
     "dns": -1,
     "http": -1,
-    "https": 8501
+    "https": 8501,
+    "grpc": -1,
+    "grpc_tls": 8503
   },
   "rejoin_after_leave": true,
   "server": {{ (not consul_agent_only)|lower }},

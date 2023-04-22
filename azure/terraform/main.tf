@@ -485,6 +485,20 @@ resource azurerm_network_security_rule consul_internal_https {
   direction                                  = "Inbound"
 }
 
+resource azurerm_network_security_rule consul_internal_grpc {
+  name                                       = "consul-internal-grpc"
+  resource_group_name                        = data.azurerm_resource_group.default.name
+  network_security_group_name                = "default"
+  protocol                                   = "Tcp"
+  source_port_range                          = "*"
+  destination_port_range                     = "8503"
+  source_application_security_group_ids      = [azurerm_application_security_group.consul.id]
+  destination_application_security_group_ids = [azurerm_application_security_group.consul.id]
+  access                                     = "Allow"
+  priority                                   = "290"
+  direction                                  = "Inbound"
+}
+
 resource azurerm_network_security_rule vault_external_https {
   name                                       = "vault-external-https"
   resource_group_name                        = data.azurerm_resource_group.default.name
@@ -495,7 +509,7 @@ resource azurerm_network_security_rule vault_external_https {
   source_application_security_group_ids      = [azurerm_application_security_group.vault.id]
   destination_application_security_group_ids = [azurerm_application_security_group.vault.id]
   access                                     = "Allow"
-  priority                                   = "290"
+  priority                                   = "300"
   direction                                  = "Inbound"
 }
 
@@ -509,7 +523,7 @@ resource azurerm_network_security_rule vault_internal_https {
   source_application_security_group_ids      = [azurerm_application_security_group.vault.id]
   destination_application_security_group_ids = [azurerm_application_security_group.vault.id]
   access                                     = "Allow"
-  priority                                   = "300"
+  priority                                   = "310"
   direction                                  = "Inbound"
 }
 
@@ -523,7 +537,7 @@ resource azurerm_network_security_rule deny_all_consul {
   source_address_prefix                      = "*"
   destination_application_security_group_ids = [azurerm_application_security_group.consul.id]
   access                                     = "Deny"
-  priority                                   = "310"
+  priority                                   = "320"
   direction                                  = "Inbound"
 }
 
@@ -537,7 +551,7 @@ resource azurerm_network_security_rule deny_all_vault {
   source_address_prefix                      = "*"
   destination_application_security_group_ids = [azurerm_application_security_group.vault.id]
   access                                     = "Deny"
-  priority                                   = "320"
+  priority                                   = "330"
   direction                                  = "Inbound"
 }
 
@@ -551,7 +565,7 @@ resource azurerm_network_security_rule deny_all_haproxy {
   source_address_prefix                      = "*"
   destination_application_security_group_ids = [azurerm_application_security_group.haproxy.id]
   access                                     = "Deny"
-  priority                                   = "330"
+  priority                                   = "340"
   direction                                  = "Inbound"
 }
 
