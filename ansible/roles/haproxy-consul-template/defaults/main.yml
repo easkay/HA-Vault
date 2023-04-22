@@ -1,5 +1,5 @@
 ---
-consul_template_version: 0.22.0
+consul_template_version: 0.31.0
 consul_template_verify_binary_checksum: true
 consul_template_download_filename: "consul-template_{{ consul_template_version }}_linux_amd64.zip"
 consul_template_overwrite_binary: false
