@@ -7,7 +7,7 @@
 
 - name: Add HAProxy PPA
   apt_repository:
-    repo: ppa:vbernat/haproxy-2.6
+    repo: ppa:vbernat/haproxy-2.7
 
 - name: Install HAProxy package
   apt:
