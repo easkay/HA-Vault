@@ -15,7 +15,7 @@
   when: consul_template_verify_binary_checksum
 
 - name: Find binary checksum
-  shell: "grep {{ consul_template_download_filename }} {{ role_path }}/files/*SHA256SUMS | grep -oE '^\\S+'"
+  shell: "grep {{ consul_template_download_filename }} {{ role_path }}/files/consul-template_{{ consul_template_version }}_SHA256SUMS | grep -oE '^\\S+'"
   delegate_to: localhost
   become: no
   when: consul_template_verify_binary_checksum
