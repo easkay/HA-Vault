@@ -1,3 +1,8 @@
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#  This repo is old and outdated, sorry about that. It _will_ be broken, proceed at your own risk!
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
 # Production-ish Vault installation with a Consul cluster (storage)
 
 _NOTE_: This setup does not ship ready out-of-the-box, there are some tweaks the end user should do.
